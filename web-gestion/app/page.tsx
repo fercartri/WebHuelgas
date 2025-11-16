@@ -46,8 +46,6 @@ export default async function Home() {
                       width={200}
                       height={150}
                       className="w-full h-36 object-cover rounded-lg"
-                      // IMPORTANTE: 'unoptimized' se usa para URLs externas como las de Supabase
-                      unoptimized 
                     />
                   ) : (
                     <div className="w-full h-36 bg-gray-200 dark:bg-zinc-700 rounded-lg flex items-center justify-center text-sm text-zinc-500 dark:text-zinc-400">

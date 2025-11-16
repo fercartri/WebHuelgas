@@ -24,7 +24,6 @@ export default async function Home() {
           Catálogo de Ubicaciones
         </h1>
         
-        {/* 3. Renderizado de la lista de ubicaciones */}
         {ubicaciones.length === 0 ? (
           <p className="text-center text-lg text-zinc-600 dark:text-zinc-400 p-10">
             Aún no hay ubicaciones registradas en la base de datos.
@@ -36,7 +35,6 @@ export default async function Home() {
                 key={ubicacion.id} 
                 className="p-5 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row gap-5"
               >
-                {/* 4. Mostrar la Imagen de Supabase */}
                 <div className="w-full md:w-48 flex-shrink-0">
                   {ubicacion.urlFotoSupabase ? (
                     <Image 
@@ -53,7 +51,6 @@ export default async function Home() {
                   )}
                 </div>
 
-                {/* 5. Mostrar la Información de Firestore */}
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{ubicacion.nombre}</h3>
                   <p className="text-zinc-600 dark:text-zinc-300 mt-2">{ubicacion.descripcion}</p>

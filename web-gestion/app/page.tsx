@@ -61,7 +61,7 @@ export default async function Home() {
                   
                   <div className="mt-4 text-sm text-zinc-500 dark:text-zinc-400 border-t pt-3">
                     <p>
-                      Orden de Aparición: <span className="font-semibold">{ubicacion.orden}</span>
+                      Orden: <span className="font-semibold">{ubicacion.orden}</span>
                     </p>
                     <p>
                       Coordenadas (X, Y): ({ubicacion.coordenadaX}, {ubicacion.coordenadaY})

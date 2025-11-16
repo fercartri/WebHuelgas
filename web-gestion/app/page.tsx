@@ -57,7 +57,7 @@ export default async function Home() {
                 {/* 5. Mostrar la Información de Firestore - Ocupa 75% restante (md:w-3/4) */}
                 <div className="md:w-1/2"> 
                   <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{ubicacion.nombre.toUpperCase()}</h3>
-                  <p className="text-zinc-600 dark:text-zinc-300 mt-2">{ubicacion.descripcion}</p>
+                  <p className="text-zinc-600 dark:text-zinc-300 mt-2 text-justify">{ubicacion.descripcion}</p>
                   
                   <div className="mt-4 text-sm text-zinc-500 dark:text-zinc-400 border-t pt-3">
                     <p>

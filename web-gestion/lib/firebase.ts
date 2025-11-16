@@ -1,4 +1,3 @@
-// 1. Importaciones necesarias de Firebase
 import { initializeApp } from "firebase/app";
 import { 
   getFirestore, 
@@ -6,38 +5,42 @@ import {
   getDocs, 
   query, 
   orderBy, 
-  CollectionReference, 
-  DocumentData 
+  DocumentData,
+  doc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc,
 } from "firebase/firestore";
 
-// 2. Configuración de Firebase con variables de entorno
 const firebaseConfig = {
-  // Solo se requieren los campos esenciales para la conexión de la app.
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Inicializa la aplicación de Firebase
-// Se comprueba que el código no se ejecute múltiples veces en el servidor (aunque Next.js ya lo gestiona)
 const app = initializeApp(firebaseConfig);
 
-// Exporta la instancia de Firestore
 export const db = getFirestore(app);
 
 
-// 3. Define la interfaz de tus datos (para TypeScript)
 export interface Ubicacion {
   id: string;
   nombre: string;
   descripcion: string;
-  urlFotoSupabase: string; // La URL pública de la imagen en Supabase
+  urlFotoSupabase: string;
   orden: number;
   coordenadaX: number;
   coordenadaY: number;
 }
 
+// Define el tipo de datos que se guardarán, excluyendo 'id'
+export type UbicacionData = Omit<Ubicacion, 'id'>;
+
+
+// 4. Operaciones CRUD (CREATE, READ, UPDATE, DELETE)
+
+const UBICACIONES_COLLECTION = "ubicaciones";
 
 /**
  * Obtiene todas las ubicaciones de la colección "ubicaciones" de Firestore, 
@@ -45,20 +48,15 @@ export interface Ubicacion {
  * @returns {Promise<Ubicacion[]>} Lista de objetos de ubicación.
  */
 export async function getUbicaciones(): Promise<Ubicacion[]> {
-  // Define la referencia a la colección 'ubicaciones'
-  const ubicacionesRef = collection(db, "ubicaciones");
+  const ubicacionesRef = collection(db, UBICACIONES_COLLECTION);
   
-  // Crea la consulta para ordenar por el campo 'orden' de forma ascendente
   const q = query(ubicacionesRef, orderBy("orden", "asc"));
   
-  // Ejecuta la consulta
   const querySnapshot = await getDocs(q);
   
-  // CORRECCIÓN en el mapeo explícito para TypeScript:
   const ubicacionesList: Ubicacion[] = querySnapshot.docs.map(doc => {
-    const data = doc.data() as DocumentData; // Obtén los datos como un tipo genérico DocumentData
+    const data = doc.data() as DocumentData;
     
-    // Mapeo explícito de los campos
     return {
       id: doc.id,
       nombre: (data.nombre as string) || 'Sin Nombre',
@@ -71,4 +69,28 @@ export async function getUbicaciones(): Promise<Ubicacion[]> {
   });
 
   return ubicacionesList;
+}
+
+/**
+ * Crea una nueva ubicación en Firestore.
+ */
+export async function createUbicacion(data: UbicacionData): Promise<void> {
+  await addDoc(collection(db, UBICACIONES_COLLECTION), data);
+}
+
+/**
+ * Modifica una ubicación existente por su ID.
+ */
+export async function updateUbicacion(id: string, data: Partial<UbicacionData>): Promise<void> {
+  const ubicacionDoc = doc(db, UBICACIONES_COLLECTION, id);
+  // Nota: data es Partial, solo se actualizan los campos proporcionados
+  await updateDoc(ubicacionDoc, data);
+}
+
+/**
+ * Elimina una ubicación por su ID.
+ */
+export async function deleteUbicacion(id: string): Promise<void> {
+  const ubicacionDoc = doc(db, UBICACIONES_COLLECTION, id);
+  await deleteDoc(ubicacionDoc);
 }

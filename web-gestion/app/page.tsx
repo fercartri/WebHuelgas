@@ -1,4 +1,3 @@
-// web-gestion/app/page.tsx
 import Image from "next/image";
 // 1. Importa la función de carga de datos y la interfaz
 import { getUbicaciones, Ubicacion } from "@/lib/firebase";

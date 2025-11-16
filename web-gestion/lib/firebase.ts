@@ -1,5 +1,3 @@
-// web-gestion/lib/firebase.ts
-
 // 1. Importaciones necesarias de Firebase
 import { initializeApp } from "firebase/app";
 import { 

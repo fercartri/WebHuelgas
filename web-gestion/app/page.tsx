@@ -1,64 +1,79 @@
+// web-gestion/app/page.tsx
 import Image from "next/image";
+// 1. Importa la función de carga de datos y la interfaz
+import { getUbicaciones, Ubicacion } from "@/lib/firebase";
 
-export default function Home() {
+// El componente de la página es async en el App Router de Next.js.
+// Esto permite que la función 'getUbicaciones' se ejecute en el servidor (durante la construcción o la petición).
+export default async function Home() {
+  
+  let ubicaciones: Ubicacion[] = [];
+  try {
+    // 2. Llama a la función para obtener los datos de Firestore
+    ubicaciones = await getUbicaciones();
+  } catch (error) {
+    console.error("Error al cargar ubicaciones:", error);
+    // En producción, aquí podrías devolver una página de error o un mensaje
+    return <p className="text-red-600 text-center p-10">Error al conectar con la base de datos.</p>;
+  }
+  
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="flex min-h-screen items-start justify-center p-4 md:p-10 bg-gray-50 dark:bg-zinc-900">
+      <main className="w-full max-w-4xl flex flex-col gap-8 bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-xl">
+        
+        <h1 className="text-3xl md:text-4xl font-extrabold text-center text-zinc-900 dark:text-zinc-50 border-b pb-4">
+          Catálogo de Ubicaciones
+        </h1>
+        
+        {/* 3. Renderizado de la lista de ubicaciones */}
+        {ubicaciones.length === 0 ? (
+          <p className="text-center text-lg text-zinc-600 dark:text-zinc-400 p-10">
+            Aún no hay ubicaciones registradas en la base de datos.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+        ) : (
+          <div className="space-y-6">
+            {ubicaciones.map((ubicacion) => (
+              <article 
+                key={ubicacion.id} 
+                className="p-5 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row gap-5"
+              >
+                {/* 4. Mostrar la Imagen de Supabase */}
+                <div className="w-full md:w-48 flex-shrink-0">
+                  {ubicacion.urlFotoSupabase ? (
+                    <Image 
+                      src={ubicacion.urlFotoSupabase} 
+                      alt={`Foto de ${ubicacion.nombre}`}
+                      width={200}
+                      height={150}
+                      className="w-full h-36 object-cover rounded-lg"
+                      // IMPORTANTE: 'unoptimized' se usa para URLs externas como las de Supabase
+                      unoptimized 
+                    />
+                  ) : (
+                    <div className="w-full h-36 bg-gray-200 dark:bg-zinc-700 rounded-lg flex items-center justify-center text-sm text-zinc-500 dark:text-zinc-400">
+                      Sin Imagen
+                    </div>
+                  )}
+                </div>
+
+                {/* 5. Mostrar la Información de Firestore */}
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{ubicacion.nombre}</h3>
+                  <p className="text-zinc-600 dark:text-zinc-300 mt-2">{ubicacion.descripcion}</p>
+                  
+                  <div className="mt-4 text-sm text-zinc-500 dark:text-zinc-400 border-t pt-3">
+                    <p>
+                      **Orden de Aparición:** <span className="font-semibold">{ubicacion.orden}</span>
+                    </p>
+                    <p>
+                      **Coordenadas (X, Y):** ({ubicacion.coordenadaX}, {ubicacion.coordenadaY})
+                    </p>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );

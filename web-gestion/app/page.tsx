@@ -35,7 +35,6 @@ export default async function Home() {
             {ubicaciones.map((ubicacion) => (
               <article 
                 key={ubicacion.id} 
-                // Contenedor Flex para la Foto y la Info
                 className="p-5 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col md:flex-row gap-5"
               >
                 <div className="w-full md:w-1/2 flex-none"> 
@@ -54,7 +53,6 @@ export default async function Home() {
                   )}
                 </div>
 
-                {/* 5. Mostrar la Información de Firestore - Ocupa 75% restante (md:w-3/4) */}
                 <div className="md:w-1/2"> 
                   <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{ubicacion.nombre.toUpperCase()}</h3>
                   <p className="text-zinc-600 dark:text-zinc-300 mt-2 text-justify">{ubicacion.descripcion}</p>

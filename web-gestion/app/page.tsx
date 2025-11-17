@@ -229,7 +229,6 @@ export default function Home() {
   };
 
   const handleDelete = async (id: string, nombre: string) => {
-    // Usamos window.confirm, pero en una app de producción usarías un modal custom
     const confirmed = window.confirm(`¿Estás seguro de que quieres eliminar la ubicación "${nombre}"? Esta acción es irreversible.`);
     
     if (confirmed) {
@@ -239,11 +238,8 @@ export default function Home() {
         fetchUbicaciones(); // Recarga la lista después de eliminar
       } catch (error) {
         console.error("Error al eliminar la ubicación:", error);
-        // Utiliza un mensaje más amigable o un modal custom aquí.
         alert("Hubo un error al intentar eliminar la ubicación."); 
       } finally {
-        // En caso de fallo de eliminación, mantenemos el spinner o no
-        // Aquí forzamos a que vuelva al estado 'no-cargando'
         setLoading(false);
       }
     }

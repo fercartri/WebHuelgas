@@ -27,10 +27,10 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
   const initialState: FormData = {
     nombre: ubicacionToEdit?.nombre || '',
     descripcion: ubicacionToEdit?.descripcion || '',
-    urlFotoSupabase: ubicacionToEdit?.urlFotoSupabase || '',
+    foto_url: ubicacionToEdit?.foto_url || '',
     orden: ubicacionToEdit?.orden || 0,
-    coordenadaX: ubicacionToEdit?.coordenadaX || 0,
-    coordenadaY: ubicacionToEdit?.coordenadaY || 0,
+    x: ubicacionToEdit?.x || 0,
+    y: ubicacionToEdit?.y || 0,
     id: ubicacionToEdit?.id,
   };
 
@@ -60,13 +60,23 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
     setError('');
 
     try {
-      // Separa el ID del resto de los datos para la operación de Firebase
-      const { id, ...dataToSave } = formData;
-      const dataWithoutId = dataToSave as UbicacionData;
+      // ANTES: const { id, ...dataToSave } = formData;
+      // ANTES: const dataWithoutId = dataToSave as UbicacionData;
+      
+      // DESPUÉS: Construir el objeto de datos de forma explícita para forzar
+      // la eliminación de cualquier propiedad antigua residual.
+      const dataWithoutId: UbicacionData = {
+        nombre: formData.nombre,
+        descripcion: formData.descripcion,
+        foto_url: formData.foto_url,
+        orden: formData.orden,
+        x: formData.x,
+        y: formData.y,
+      };
 
-      if (isEditing && id) {
+      if (isEditing && formData.id) {
         // Operación de MODIFICAR (Update)
-        await updateUbicacion(id, dataWithoutId);
+        await updateUbicacion(formData.id, dataWithoutId);
       } else {
         // Operación de CREAR (Create)
         await createUbicacion(dataWithoutId);
@@ -120,8 +130,8 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
             <span className="text-zinc-700 dark:text-zinc-300">URL Foto Supabase:</span>
             <input
               type="text"
-              name="urlFotoSupabase"
-              value={formData.urlFotoSupabase}
+              name="foto_url"
+              value={formData.foto_url}
               onChange={handleChange}
               className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
             />
@@ -144,8 +154,8 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
               <span className="text-zinc-700 dark:text-zinc-300">Coord. X:</span>
               <input
                 type="number"
-                name="coordenadaX"
-                value={formData.coordenadaX}
+                name="x"
+                value={formData.x}
                 onChange={handleChange}
                 required
                 className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
@@ -155,8 +165,8 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
               <span className="text-zinc-700 dark:text-zinc-300">Coord. Y:</span>
               <input
                 type="number"
-                name="coordenadaY"
-                value={formData.coordenadaY}
+                name="y"
+                value={formData.y}
                 onChange={handleChange}
                 required
                 className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
@@ -282,9 +292,9 @@ export default function Home() {
               >
                 {/* 4. Mostrar la Imagen de Supabase - Ocupa 25% en escritorio (md:w-1/4) */}
                 <div className="w-full md:w-1/4 flex-none"> 
-                  {ubicacion.urlFotoSupabase ? (
+                  {ubicacion.foto_url ? (
                     <Image 
-                      src={ubicacion.urlFotoSupabase} 
+                      src={ubicacion.foto_url} 
                       alt={`Foto de ${ubicacion.nombre}`}
                       width={200}
                       height={150}
@@ -308,7 +318,7 @@ export default function Home() {
                         Orden de Aparición: <span className="font-semibold">{ubicacion.orden}</span>
                       </p>
                       <p>
-                        Coordenadas (X, Y): ({ubicacion.coordenadaX}, {ubicacion.coordenadaY})
+                        Coordenadas (X, Y): ({ubicacion.x}, {ubicacion.y})
                       </p>
                     </div>
                   </div>

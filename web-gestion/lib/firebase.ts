@@ -28,17 +28,14 @@ export interface Ubicacion {
   id: string;
   nombre: string;
   descripcion: string;
-  urlFotoSupabase: string;
+  foto_url: string;
   orden: number;
-  coordenadaX: number;
-  coordenadaY: number;
+  x: number;
+  y: number;
 }
 
 // Define el tipo de datos que se guardarán, excluyendo 'id'
 export type UbicacionData = Omit<Ubicacion, 'id'>;
-
-
-// 4. Operaciones CRUD (CREATE, READ, UPDATE, DELETE)
 
 const UBICACIONES_COLLECTION = "ubicaciones";
 
@@ -61,10 +58,10 @@ export async function getUbicaciones(): Promise<Ubicacion[]> {
       id: doc.id,
       nombre: (data.nombre as string) || 'Sin Nombre',
       descripcion: (data.descripcion as string) || 'Sin Descripción',
-      urlFotoSupabase: (data.foto_url as string) || '',
+      foto_url: (data.foto_url as string) || '',
       orden: (data.orden as number) || 0,
-      coordenadaX: (data.x as number) || 0,
-      coordenadaY: (data.y as number) || 0,
+      x: (data.x as number) || 0,
+      y: (data.y as number) || 0,
     };
   });
 

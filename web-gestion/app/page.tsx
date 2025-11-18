@@ -60,13 +60,23 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
     setError('');
 
     try {
-      // Separa el ID del resto de los datos para la operación de Firebase
-      const { id, ...dataToSave } = formData;
-      const dataWithoutId = dataToSave as UbicacionData;
+      // ANTES: const { id, ...dataToSave } = formData;
+      // ANTES: const dataWithoutId = dataToSave as UbicacionData;
+      
+      // DESPUÉS: Construir el objeto de datos de forma explícita para forzar
+      // la eliminación de cualquier propiedad antigua residual.
+      const dataWithoutId: UbicacionData = {
+        nombre: formData.nombre,
+        descripcion: formData.descripcion,
+        foto_url: formData.foto_url,
+        orden: formData.orden,
+        x: formData.x,
+        y: formData.y,
+      };
 
-      if (isEditing && id) {
+      if (isEditing && formData.id) {
         // Operación de MODIFICAR (Update)
-        await updateUbicacion(id, dataWithoutId);
+        await updateUbicacion(formData.id, dataWithoutId);
       } else {
         // Operación de CREAR (Create)
         await createUbicacion(dataWithoutId);

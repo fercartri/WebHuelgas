@@ -37,9 +37,6 @@ export interface Ubicacion {
 // Define el tipo de datos que se guardarán, excluyendo 'id'
 export type UbicacionData = Omit<Ubicacion, 'id'>;
 
-
-// 4. Operaciones CRUD (CREATE, READ, UPDATE, DELETE)
-
 const UBICACIONES_COLLECTION = "ubicaciones";
 
 /**

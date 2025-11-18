@@ -120,7 +120,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
             <span className="text-zinc-700 dark:text-zinc-300">URL Foto Supabase:</span>
             <input
               type="text"
-              name="urlFotoSupabase"
+              name="foto_url"
               value={formData.foto_url}
               onChange={handleChange}
               className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"

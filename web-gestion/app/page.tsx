@@ -394,7 +394,7 @@ export default function Home() {
         
         <header className="flex justify-between items-center border-b pb-4">
           <h1 className="text-3xl md:text-4xl font-extrabold text-zinc-900 dark:text-zinc-50">
-            Catálogo de Ubicaciones
+            Ubicaciones
           </h1>
           <div className="flex items-center space-x-4">
             {/* 1. 🆕 BOTÓN DE CERRAR SESIÓN (Logout) */}

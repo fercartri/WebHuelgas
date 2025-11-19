@@ -8,7 +8,12 @@ import {
   updateUbicacion, 
   deleteUbicacion, 
   Ubicacion, 
-  UbicacionData 
+  UbicacionData,
+  auth,
+  googleProvider,
+  signOut,
+  signInWithPopup,
+  User,
 } from "@/lib/firebase";
 
 type FormData = UbicacionData & { id?: string };
@@ -27,10 +32,10 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
   const initialState: FormData = {
     nombre: ubicacionToEdit?.nombre || '',
     descripcion: ubicacionToEdit?.descripcion || '',
-    urlFotoSupabase: ubicacionToEdit?.urlFotoSupabase || '',
+    foto_url: ubicacionToEdit?.foto_url || '',
     orden: ubicacionToEdit?.orden || 0,
-    coordenadaX: ubicacionToEdit?.coordenadaX || 0,
-    coordenadaY: ubicacionToEdit?.coordenadaY || 0,
+    x: ubicacionToEdit?.x || 0,
+    y: ubicacionToEdit?.y || 0,
     id: ubicacionToEdit?.id,
   };
 
@@ -60,13 +65,29 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
     setError('');
 
     try {
-      // Separa el ID del resto de los datos para la operación de Firebase
-      const { id, ...dataToSave } = formData;
-      const dataWithoutId = dataToSave as UbicacionData;
+      // 1. Transformar nombre a minúsculas
+      const nombreLower = formData.nombre.toLowerCase(); 
+      
+      // 2. Limitar 'orden' a números positivos (0 en adelante).
+      const ordenClamped = Math.max(0, Math.round(formData.orden));
 
-      if (isEditing && id) {
+      // 3. Limitar coordenadas 'x' e 'y' entre 0 y 1.
+      const xClamped = Math.max(0, Math.min(1, formData.x));
+      const yClamped = Math.max(0, Math.min(1, formData.y));
+      
+      // Construir el objeto de datos con las transformaciones y validaciones
+      const dataWithoutId: UbicacionData = {
+        nombre: nombreLower,
+        descripcion: formData.descripcion,
+        foto_url: formData.foto_url,
+        orden: ordenClamped,
+        x: xClamped,
+        y: yClamped,
+      };
+
+      if (isEditing && formData.id) {
         // Operación de MODIFICAR (Update)
-        await updateUbicacion(id, dataWithoutId);
+        await updateUbicacion(formData.id, dataWithoutId);
       } else {
         // Operación de CREAR (Create)
         await createUbicacion(dataWithoutId);
@@ -75,7 +96,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
       refreshList(); // Recarga la lista principal
       onClose();
     } catch (err: any) {
-      setError(`Error al guardar: ${err.message || 'Desconocido'}`);
+      setError(`Error al guardar: Permiso denegado o problema de conexión. ${err.message || 'Desconocido'}`);
       console.error(err);
     } finally {
       setLoading(false);
@@ -120,8 +141,8 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
             <span className="text-zinc-700 dark:text-zinc-300">URL Foto Supabase:</span>
             <input
               type="text"
-              name="urlFotoSupabase"
-              value={formData.urlFotoSupabase}
+              name="foto_url"
+              value={formData.foto_url}
               onChange={handleChange}
               className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
             />
@@ -130,35 +151,43 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
           {/* Orden y Coordenadas */}
           <div className="flex space-x-4">
             <label className="block flex-1">
-              <span className="text-zinc-700 dark:text-zinc-300">Orden:</span>
+              <span className="text-zinc-700 dark:text-zinc-300">Orden (≥ 0):</span>
               <input
                 type="number"
                 name="orden"
                 value={formData.orden}
                 onChange={handleChange}
                 required
+                min="0"
+                step="1"
                 className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
               />
             </label>
             <label className="block flex-1">
-              <span className="text-zinc-700 dark:text-zinc-300">Coord. X:</span>
+              <span className="text-zinc-700 dark:text-zinc-300">Coord. X (0-1):</span>
               <input
                 type="number"
-                name="coordenadaX"
-                value={formData.coordenadaX}
+                name="x"
+                value={formData.x}
                 onChange={handleChange}
                 required
+                min="0"
+                max="1"
+                step="any"
                 className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
               />
             </label>
             <label className="block flex-1">
-              <span className="text-zinc-700 dark:text-zinc-300">Coord. Y:</span>
+              <span className="text-zinc-700 dark:text-zinc-300">Coord. Y (0-1):</span>
               <input
                 type="number"
-                name="coordenadaY"
-                value={formData.coordenadaY}
+                name="y"
+                value={formData.y}
                 onChange={handleChange}
                 required
+                min="0"
+                max="1"
+                step="any"
                 className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
               />
             </label>
@@ -189,13 +218,76 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
 };
 
 // =========================================================================
-// Componente Principal Home (Convertido a Cliente)
+// Componente de Login Screen
+// =========================================================================
+const LoginScreen = ({ onLogin, onDisplayError, error }: { onLogin: () => void, onDisplayError: (msg: string) => void, error: string }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    onDisplayError('');
+    try {
+      await signInWithPopup(auth, googleProvider);
+      onLogin(); 
+    } catch (err: any) {
+      console.error("Error de inicio de sesión:", err);
+      // Solo mostramos un error genérico si es un fallo de conexión/popup, 
+      // si es un error de permisos (auth/unauthorized-domain), se manejará en fetchUbicaciones o onAuthStateChanged
+      const message = err.code === 'auth/popup-closed-by-user' 
+        ? 'Inicio de sesión cancelado.' 
+        : (err.code === 'auth/unauthorized-domain' ? 'Error de configuración de Firebase.' : '');
+        
+      if (message) {
+        onDisplayError(message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-zinc-900">
+      <div className="p-8 bg-white dark:bg-zinc-800 rounded-xl shadow-2xl w-full max-w-sm text-center">
+        <h1 className="text-3xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">
+          Acceso de Gestión
+        </h1>
+        
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+
+        <button
+          onClick={handleGoogleSignIn}
+          className="w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+          disabled={loading}
+        >
+          {loading ? (
+            <span>Conectando...</span>
+          ) : (
+            <>
+              {/* Icono de Google */}
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.5-.2-2.22H12v4.26h6.39c-.28 1.45-1.17 2.76-2.5 3.63v3.1h4v-3.1c1.8-.93 3.01-2.9 3.01-5.32z" fill="#4285f4"></path><path d="M12 23c3.21 0 5.95-1.07 7.93-2.9l-4-3.1c-1.12.76-2.58 1.21-4.93 1.21-3.79 0-7.02-2.55-8.15-6.02H0v3.1h4C5.07 20.25 8.16 23 12 23z" fill="#34a853"></path><path d="M3.85 14.54c-.16-.48-.25-.98-.25-1.54s.09-1.06.25-1.54V8.4H0v3.1c0 1.05.18 2.05.51 3z" fill="#fbbc05"></path><path d="M12 4.19c1.78 0 3.3.61 4.54 1.76l3.44-3.37C17.95.84 15.21 0 12 0 8.16 0 5.07 2.75 3.85 6.22l4 3.1c1.13-3.47 4.36-6.03 8.15-6.03z" fill="#ea4335"></path></svg>
+              <span>Iniciar sesión con Google</span>
+            </>
+          )}
+        </button>
+        <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">Solo el administrador autorizado puede acceder.</p>
+      </div>
+    </div>
+  );
+};
+
+
+// =========================================================================
+// Componente Principal Home
 // =========================================================================
 export default function Home() {
   const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ubicacionToEdit, setUbicacionToEdit] = useState<Ubicacion | null>(null);
+  
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState('');
 
   // Función para cargar los datos y usarla en useEffect y después de CRUD
   const fetchUbicaciones = async () => {
@@ -203,28 +295,58 @@ export default function Home() {
     try {
       const data = await getUbicaciones();
       setUbicaciones(data);
-    } catch (error) {
-      console.error("Error al cargar ubicaciones:", error);
-      // Aquí podrías mostrar un error global al usuario
+      setAuthError(''); // Limpiar errores si la carga es exitosa
+    } catch (error: any) {
+      // 🚨 CAMBIO DE SEGURIDAD Y UX: Si Firestore deniega el permiso (email no autorizado),
+      // Cerramos la sesión y volvemos al login SIN mostrar un mensaje de error explícito.
+      if (error.code === 'permission-denied' || error.code === 'unavailable') {
+        console.warn("Acceso denegado por reglas de seguridad. Redirigiendo a Login...");
+        await signOut(auth); // Cierra la sesión
+        setCurrentUser(null); // Actualiza el estado local
+        setAuthError(''); // 🆕 NO mostrar el error, simplemente redireccionar
+      } else {
+        // Mostrar otros errores que no sean de 'permission-denied' o de conexión.
+        console.error("Error al cargar ubicaciones:", error);
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Carga inicial de datos
+  // Verificación de la sesión al cargar
   useEffect(() => {
-    fetchUbicaciones();
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      setCurrentUser(user);
+      setAuthLoading(false);
+      if (user) {
+        fetchUbicaciones();
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
-  // Handlers para las acciones CRUD
+  // 🆕 Función para cerrar sesión (Asegura el cierre de la sesión de Firebase)
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setCurrentUser(null);
+      setAuthError('');
+      setUbicaciones([]); // Limpiar datos
+      console.log("Sesión cerrada correctamente.");
+    } catch (e) {
+      console.error("Error al cerrar sesión:", e);
+      alert("Hubo un error al cerrar sesión.");
+    }
+  }
 
+  // Handlers para las acciones CRUD (sin cambios)
   const handleOpenNew = () => {
-    setUbicacionToEdit(null); // Establece null para forzar el modo "Crear"
+    setUbicacionToEdit(null); 
     setIsModalOpen(true);
   };
-
+  // ... (handleOpenEdit y handleDelete omitidos por brevedad, no hay cambios en su lógica)
   const handleOpenEdit = (ubicacion: Ubicacion) => {
-    setUbicacionToEdit(ubicacion); // Pasa la ubicación a editar
+    setUbicacionToEdit(ubicacion); 
     setIsModalOpen(true);
   };
 
@@ -235,7 +357,7 @@ export default function Home() {
       setLoading(true);
       try {
         await deleteUbicacion(id);
-        fetchUbicaciones(); // Recarga la lista después de eliminar
+        fetchUbicaciones();
       } catch (error) {
         console.error("Error al eliminar la ubicación:", error);
         alert("Hubo un error al intentar eliminar la ubicación."); 
@@ -245,25 +367,53 @@ export default function Home() {
     }
   };
   
-  // Renderizado principal
+  // Renderizado Condicional: Login si no hay usuario
+  if (authLoading) {
+      return (
+          <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-zinc-900">
+              <p className="text-lg text-zinc-600 dark:text-zinc-400">Cargando sesión...</p>
+          </div>
+      );
+  }
+
+  if (!currentUser) {
+    return (
+      <LoginScreen 
+        error={authError}
+        onLogin={() => {}}
+        onDisplayError={setAuthError} 
+      />
+    );
+  }
+  
+  // Renderizado principal (Autenticado)
   return (
     <div className="flex min-h-screen items-start justify-center p-4 md:p-10 bg-gray-50 dark:bg-zinc-900">
       
-      {/* Contenedor principal: 75% de ancho (md:w-3/4) */}
       <main className="w-full md:w-3/4 flex flex-col gap-8 bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-xl mx-auto">
         
         <header className="flex justify-between items-center border-b pb-4">
           <h1 className="text-3xl md:text-4xl font-extrabold text-zinc-900 dark:text-zinc-50">
             Catálogo de Ubicaciones
           </h1>
-          {/* Botón para crear nueva ubicación (Verde) */}
-          <button
-            onClick={handleOpenNew}
-            className="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition-colors disabled:opacity-50"
-            disabled={loading}
-          >
-            Nueva Ubicación
-          </button>
+          <div className="flex items-center space-x-4">
+            {/* 1. 🆕 BOTÓN DE CERRAR SESIÓN (Logout) */}
+            <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-sm bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition-colors"
+            >
+                Cerrar Sesión
+            </button>
+
+            {/* Botón para crear nueva ubicación (Verde) */}
+            <button
+                onClick={handleOpenNew}
+                className="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition-colors disabled:opacity-50"
+                disabled={loading}
+            >
+                Nueva Ubicación
+            </button>
+          </div>
         </header>
         
         {loading ? (
@@ -277,14 +427,13 @@ export default function Home() {
             {ubicaciones.map((ubicacion) => (
               <article 
                 key={ubicacion.id} 
-                // Contenedor Flex para la Foto y la Info (Horizontal en escritorio)
                 className="p-5 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm hover:shadow-lg transition-shadow flex flex-col md:flex-row gap-5"
               >
                 {/* 4. Mostrar la Imagen de Supabase - Ocupa 25% en escritorio (md:w-1/4) */}
                 <div className="w-full md:w-1/4 flex-none"> 
-                  {ubicacion.urlFotoSupabase ? (
+                  {ubicacion.foto_url ? (
                     <Image 
-                      src={ubicacion.urlFotoSupabase} 
+                      src={ubicacion.foto_url} 
                       alt={`Foto de ${ubicacion.nombre}`}
                       width={200}
                       height={150}
@@ -308,7 +457,7 @@ export default function Home() {
                         Orden de Aparición: <span className="font-semibold">{ubicacion.orden}</span>
                       </p>
                       <p>
-                        Coordenadas (X, Y): ({ubicacion.coordenadaX}, {ubicacion.coordenadaY})
+                        Coordenadas (X, Y): ({ubicacion.x}, {ubicacion.y})
                       </p>
                     </div>
                   </div>

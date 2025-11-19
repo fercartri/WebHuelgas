@@ -353,7 +353,7 @@ export default function Home() {
   };
 
   const handleDelete = async (id: string, nombre: string) => {
-    const confirmed = window.confirm(`¿Estás seguro de que quieres eliminar la ubicación "${nombre}"? Esta acción es irreversible.`);
+    const confirmed = window.confirm(`¿Estás seguro de que quieres eliminar la ubicación "${nombre.toUpperCase()}"? Esta acción es irreversible.`);
     
     if (confirmed) {
       setLoading(true);

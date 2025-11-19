@@ -132,6 +132,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
               value={formData.descripcion}
               onChange={handleChange}
               rows={3}
+              required
               className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
             />
           </label>
@@ -144,6 +145,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
               name="foto_url"
               value={formData.foto_url}
               onChange={handleChange}
+              required
               className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
             />
           </label>
@@ -397,7 +399,6 @@ export default function Home() {
             Ubicaciones
           </h1>
           <div className="flex items-center space-x-4">
-            {/* 1. 🆕 BOTÓN DE CERRAR SESIÓN (Logout) */}
             <button
                 onClick={handleLogout}
                 className="px-4 py-2 text-sm bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition-colors"
@@ -420,7 +421,7 @@ export default function Home() {
           <p className="text-center text-lg text-zinc-600 dark:text-zinc-400 p-10">Cargando ubicaciones...</p>
         ) : ubicaciones.length === 0 ? (
           <p className="text-center text-lg text-zinc-600 dark:text-zinc-400 p-10">
-            Aún no hay ubicaciones registradas en la base de datos.
+            Aún no hay ubicaciones.
           </p>
         ) : (
           <div className="space-y-6">

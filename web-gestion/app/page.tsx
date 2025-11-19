@@ -60,25 +60,23 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
     setError('');
 
     try {
-      // ANTES: const { id, ...dataToSave } = formData;
-      // ANTES: const dataWithoutId = dataToSave as UbicacionData;
-      
-      // DESPUÉS: Construir el objeto de datos de forma explícita para forzar
-      // la eliminación de cualquier propiedad antigua residual.
+      const nombreLower = formData.nombre.toLowerCase();
+      const ordenClamped = Math.max(0, Math.round(formData.orden));
+      const xClamped = Math.max(0, Math.min(1, formData.x));
+      const yClamped = Math.max(0, Math.min(1, formData.y));
+
       const dataWithoutId: UbicacionData = {
-        nombre: formData.nombre,
+        nombre: nombreLower,
         descripcion: formData.descripcion,
         foto_url: formData.foto_url,
-        orden: formData.orden,
-        x: formData.x,
-        y: formData.y,
+        orden: ordenClamped,
+        x: xClamped,
+        y: yClamped,
       };
 
       if (isEditing && formData.id) {
-        // Operación de MODIFICAR (Update)
         await updateUbicacion(formData.id, dataWithoutId);
       } else {
-        // Operación de CREAR (Create)
         await createUbicacion(dataWithoutId);
       }
       
@@ -125,7 +123,6 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
             />
           </label>
 
-          {/* Campo de URL Foto Supabase */}
           <label className="block">
             <span className="text-zinc-700 dark:text-zinc-300">URL Foto Supabase:</span>
             <input
@@ -147,6 +144,8 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
                 value={formData.orden}
                 onChange={handleChange}
                 required
+                min="0"
+                step="1"
                 className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
               />
             </label>
@@ -158,6 +157,9 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
                 value={formData.x}
                 onChange={handleChange}
                 required
+                min="0"
+                max="1"
+                step="0.01"
                 className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
               />
             </label>
@@ -169,6 +171,9 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
                 value={formData.y}
                 onChange={handleChange}
                 required
+                min="0"
+                max="1"
+                step="0.01"
                 className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
               />
             </label>

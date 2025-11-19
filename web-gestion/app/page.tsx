@@ -175,7 +175,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
                 required
                 min="0"
                 max="1"
-                step="any"
+                step="0.01"
                 className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
               />
             </label>
@@ -189,7 +189,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
                 required
                 min="0"
                 max="1"
-                step="any"
+                step="0.01"
                 className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
               />
             </label>

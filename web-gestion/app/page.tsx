@@ -249,7 +249,7 @@ const LoginScreen = ({ onLogin, onDisplayError, error }: { onLogin: () => void, 
     <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-zinc-900">
       <div className="p-8 bg-white dark:bg-zinc-800 rounded-xl shadow-2xl w-full max-w-sm text-center">
         <h1 className="text-3xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">
-          Acceso de Gestión
+          Login de Administrador
         </h1>
         
         {error && <p className="text-red-500 mb-4">{error}</p>}

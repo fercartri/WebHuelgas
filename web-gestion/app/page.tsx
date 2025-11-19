@@ -8,7 +8,12 @@ import {
   updateUbicacion, 
   deleteUbicacion, 
   Ubicacion, 
-  UbicacionData 
+  UbicacionData,
+  auth,
+  googleProvider,
+  signOut,
+  signInWithPopup,
+  User,
 } from "@/lib/firebase";
 
 type FormData = UbicacionData & { id?: string };
@@ -83,7 +88,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
       refreshList(); // Recarga la lista principal
       onClose();
     } catch (err: any) {
-      setError(`Error al guardar: ${err.message || 'Desconocido'}`);
+      setError(`Error al guardar: Permiso denegado o problema de conexión. ${err.message || 'Desconocido'}`);
       console.error(err);
     } finally {
       setLoading(false);
@@ -204,6 +209,59 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
 };
 
 // =========================================================================
+// 🆕 Componente de Login Screen
+// =========================================================================
+const LoginScreen = ({ onLogin, onDisplayError }: { onLogin: () => void, onDisplayError: (msg: string) => void }) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    onDisplayError('');
+    try {
+      await signInWithPopup(auth, googleProvider);
+      // Firebase onAuthStateChanged se encargará de actualizar el estado del Home.
+      onLogin(); 
+    } catch (err: any) {
+      console.error("Error de inicio de sesión:", err);
+      // No comprobamos el email aquí, confiamos en el error de Firestore para denegar el acceso.
+      const message = err.code === 'auth/popup-closed-by-user' 
+        ? 'Inicio de sesión cancelado.' 
+        : 'Error al intentar iniciar sesión. Asegúrate de que el email está autorizado.';
+      onDisplayError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-zinc-900">
+      <div className="p-8 bg-white dark:bg-zinc-800 rounded-xl shadow-2xl w-full max-w-sm text-center">
+        <h1 className="text-3xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">
+          Acceso de Gestión
+        </h1>
+        
+        <button
+          onClick={handleGoogleSignIn}
+          className="w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+          disabled={loading}
+        >
+          {loading ? (
+            <span>Conectando...</span>
+          ) : (
+            <>
+              {/* Icono de Google */}
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.5-.2-2.22H12v4.26h6.39c-.28 1.45-1.17 2.76-2.5 3.63v3.1h4v-3.1c1.8-.93 3.01-2.9 3.01-5.32z" fill="#4285f4"></path><path d="M12 23c3.21 0 5.95-1.07 7.93-2.9l-4-3.1c-1.12.76-2.58 1.21-4.93 1.21-3.79 0-7.02-2.55-8.15-6.02H0v3.1h4C5.07 20.25 8.16 23 12 23z" fill="#34a853"></path><path d="M3.85 14.54c-.16-.48-.25-.98-.25-1.54s.09-1.06.25-1.54V8.4H0v3.1c0 1.05.18 2.05.51 3z" fill="#fbbc05"></path><path d="M12 4.19c1.78 0 3.3.61 4.54 1.76l3.44-3.37C17.95.84 15.21 0 12 0 8.16 0 5.07 2.75 3.85 6.22l4 3.1c1.13-3.47 4.36-6.03 8.15-6.03z" fill="#ea4335"></path></svg>
+              <span>Iniciar sesión con Google</span>
+            </>
+          )}
+        </button>
+        <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">Solo el administrador autorizado puede acceder.</p>
+      </div>
+    </div>
+  );
+};
+
+// =========================================================================
 // Componente Principal Home (Convertido a Cliente)
 // =========================================================================
 export default function Home() {
@@ -212,24 +270,74 @@ export default function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ubicacionToEdit, setUbicacionToEdit] = useState<Ubicacion | null>(null);
 
+  // Estados de Autenticación
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authError, setAuthError] = useState('');
+
   // Función para cargar los datos y usarla en useEffect y después de CRUD
   const fetchUbicaciones = async () => {
     setLoading(true);
     try {
       const data = await getUbicaciones();
       setUbicaciones(data);
-    } catch (error) {
+    } catch (error: any) {
+      // Si el email no está autorizado, la regla de Firebase fallará aquí
+      if (error.code === 'permission-denied') {
+        setAuthError('Error de acceso: No tienes permisos para gestionar las ubicaciones.');
+        setCurrentUser(null);
+        await signOut(auth);
+      }
       console.error("Error al cargar ubicaciones:", error);
-      // Aquí podrías mostrar un error global al usuario
     } finally {
       setLoading(false);
     }
   };
 
-  // Carga inicial de datos
+  // Verificación de la sesión al cargar
   useEffect(() => {
-    fetchUbicaciones();
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      setCurrentUser(user);
+      setAuthLoading(false);
+      // Solo intentamos cargar ubicaciones si hay un usuario. 
+      // El backend (Security Rules) se encargará de validar si es el email correcto.
+      if (user) {
+        fetchUbicaciones();
+      }
+    });
+    return () => unsubscribe();
   }, []);
+
+  // Función para cerrar sesión
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setCurrentUser(null);
+      setAuthError('');
+      setUbicaciones([]); // Limpiar datos al cerrar sesión
+    } catch (e) {
+      console.error("Error al cerrar sesión:", e);
+      alert("Hubo un error al cerrar sesión.");
+    }
+  }
+
+  // Lógica de Renderizado Condicional: Muestra Login si no hay usuario
+  if (authLoading) {
+      return (
+          <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-zinc-900">
+              <p className="text-lg text-zinc-600 dark:text-zinc-400">Cargando sesión...</p>
+          </div>
+      );
+  }
+
+  if (!currentUser) {
+    return (
+      <LoginScreen 
+        onLogin={() => {}} // No hace nada, onAuthStateChanged maneja la carga
+        onDisplayError={setAuthError} 
+      />
+    );
+  }
 
   // Handlers para las acciones CRUD
 

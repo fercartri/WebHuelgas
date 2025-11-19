@@ -65,11 +65,17 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
     setError('');
 
     try {
-      const nombreLower = formData.nombre.toLowerCase();
+      // 1. Transformar nombre a minúsculas
+      const nombreLower = formData.nombre.toLowerCase(); 
+      
+      // 2. Limitar 'orden' a números positivos (0 en adelante).
       const ordenClamped = Math.max(0, Math.round(formData.orden));
+
+      // 3. Limitar coordenadas 'x' e 'y' entre 0 y 1.
       const xClamped = Math.max(0, Math.min(1, formData.x));
       const yClamped = Math.max(0, Math.min(1, formData.y));
-
+      
+      // Construir el objeto de datos con las transformaciones y validaciones
       const dataWithoutId: UbicacionData = {
         nombre: nombreLower,
         descripcion: formData.descripcion,
@@ -80,8 +86,10 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
       };
 
       if (isEditing && formData.id) {
+        // Operación de MODIFICAR (Update)
         await updateUbicacion(formData.id, dataWithoutId);
       } else {
+        // Operación de CREAR (Create)
         await createUbicacion(dataWithoutId);
       }
       
@@ -128,6 +136,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
             />
           </label>
 
+          {/* Campo de URL Foto Supabase */}
           <label className="block">
             <span className="text-zinc-700 dark:text-zinc-300">URL Foto Supabase:</span>
             <input
@@ -142,7 +151,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
           {/* Orden y Coordenadas */}
           <div className="flex space-x-4">
             <label className="block flex-1">
-              <span className="text-zinc-700 dark:text-zinc-300">Orden:</span>
+              <span className="text-zinc-700 dark:text-zinc-300">Orden (≥ 0):</span>
               <input
                 type="number"
                 name="orden"
@@ -155,7 +164,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
               />
             </label>
             <label className="block flex-1">
-              <span className="text-zinc-700 dark:text-zinc-300">Coord. X:</span>
+              <span className="text-zinc-700 dark:text-zinc-300">Coord. X (0-1):</span>
               <input
                 type="number"
                 name="x"
@@ -164,12 +173,12 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
                 required
                 min="0"
                 max="1"
-                step="0.01"
+                step="any"
                 className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
               />
             </label>
             <label className="block flex-1">
-              <span className="text-zinc-700 dark:text-zinc-300">Coord. Y:</span>
+              <span className="text-zinc-700 dark:text-zinc-300">Coord. Y (0-1):</span>
               <input
                 type="number"
                 name="y"
@@ -178,7 +187,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
                 required
                 min="0"
                 max="1"
-                step="0.01"
+                step="any"
                 className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
               />
             </label>
@@ -209,9 +218,9 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
 };
 
 // =========================================================================
-// 🆕 Componente de Login Screen
+// Componente de Login Screen
 // =========================================================================
-const LoginScreen = ({ onLogin, onDisplayError }: { onLogin: () => void, onDisplayError: (msg: string) => void }) => {
+const LoginScreen = ({ onLogin, onDisplayError, error }: { onLogin: () => void, onDisplayError: (msg: string) => void, error: string }) => {
   const [loading, setLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
@@ -219,15 +228,18 @@ const LoginScreen = ({ onLogin, onDisplayError }: { onLogin: () => void, onDispl
     onDisplayError('');
     try {
       await signInWithPopup(auth, googleProvider);
-      // Firebase onAuthStateChanged se encargará de actualizar el estado del Home.
       onLogin(); 
     } catch (err: any) {
       console.error("Error de inicio de sesión:", err);
-      // No comprobamos el email aquí, confiamos en el error de Firestore para denegar el acceso.
+      // Solo mostramos un error genérico si es un fallo de conexión/popup, 
+      // si es un error de permisos (auth/unauthorized-domain), se manejará en fetchUbicaciones o onAuthStateChanged
       const message = err.code === 'auth/popup-closed-by-user' 
         ? 'Inicio de sesión cancelado.' 
-        : 'Error al intentar iniciar sesión. Asegúrate de que el email está autorizado.';
-      onDisplayError(message);
+        : (err.code === 'auth/unauthorized-domain' ? 'Error de configuración de Firebase.' : '');
+        
+      if (message) {
+        onDisplayError(message);
+      }
     } finally {
       setLoading(false);
     }
@@ -240,6 +252,8 @@ const LoginScreen = ({ onLogin, onDisplayError }: { onLogin: () => void, onDispl
           Acceso de Gestión
         </h1>
         
+        {error && <p className="text-red-500 mb-4">{error}</p>}
+
         <button
           onClick={handleGoogleSignIn}
           className="w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
@@ -261,16 +275,16 @@ const LoginScreen = ({ onLogin, onDisplayError }: { onLogin: () => void, onDispl
   );
 };
 
+
 // =========================================================================
-// Componente Principal Home (Convertido a Cliente)
+// Componente Principal Home
 // =========================================================================
 export default function Home() {
   const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ubicacionToEdit, setUbicacionToEdit] = useState<Ubicacion | null>(null);
-
-  // Estados de Autenticación
+  
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState('');
@@ -281,14 +295,19 @@ export default function Home() {
     try {
       const data = await getUbicaciones();
       setUbicaciones(data);
+      setAuthError(''); // Limpiar errores si la carga es exitosa
     } catch (error: any) {
-      // Si el email no está autorizado, la regla de Firebase fallará aquí
-      if (error.code === 'permission-denied') {
-        setAuthError('Error de acceso: No tienes permisos para gestionar las ubicaciones.');
-        setCurrentUser(null);
-        await signOut(auth);
+      // 🚨 CAMBIO DE SEGURIDAD Y UX: Si Firestore deniega el permiso (email no autorizado),
+      // Cerramos la sesión y volvemos al login SIN mostrar un mensaje de error explícito.
+      if (error.code === 'permission-denied' || error.code === 'unavailable') {
+        console.warn("Acceso denegado por reglas de seguridad. Redirigiendo a Login...");
+        await signOut(auth); // Cierra la sesión
+        setCurrentUser(null); // Actualiza el estado local
+        setAuthError(''); // 🆕 NO mostrar el error, simplemente redireccionar
+      } else {
+        // Mostrar otros errores que no sean de 'permission-denied' o de conexión.
+        console.error("Error al cargar ubicaciones:", error);
       }
-      console.error("Error al cargar ubicaciones:", error);
     } finally {
       setLoading(false);
     }
@@ -299,8 +318,6 @@ export default function Home() {
     const unsubscribe = auth.onAuthStateChanged(user => {
       setCurrentUser(user);
       setAuthLoading(false);
-      // Solo intentamos cargar ubicaciones si hay un usuario. 
-      // El backend (Security Rules) se encargará de validar si es el email correcto.
       if (user) {
         fetchUbicaciones();
       }
@@ -308,20 +325,49 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  // Función para cerrar sesión
+  // 🆕 Función para cerrar sesión (Asegura el cierre de la sesión de Firebase)
   const handleLogout = async () => {
     try {
       await signOut(auth);
       setCurrentUser(null);
       setAuthError('');
-      setUbicaciones([]); // Limpiar datos al cerrar sesión
+      setUbicaciones([]); // Limpiar datos
+      console.log("Sesión cerrada correctamente.");
     } catch (e) {
       console.error("Error al cerrar sesión:", e);
       alert("Hubo un error al cerrar sesión.");
     }
   }
 
-  // Lógica de Renderizado Condicional: Muestra Login si no hay usuario
+  // Handlers para las acciones CRUD (sin cambios)
+  const handleOpenNew = () => {
+    setUbicacionToEdit(null); 
+    setIsModalOpen(true);
+  };
+  // ... (handleOpenEdit y handleDelete omitidos por brevedad, no hay cambios en su lógica)
+  const handleOpenEdit = (ubicacion: Ubicacion) => {
+    setUbicacionToEdit(ubicacion); 
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (id: string, nombre: string) => {
+    const confirmed = window.confirm(`¿Estás seguro de que quieres eliminar la ubicación "${nombre}"? Esta acción es irreversible.`);
+    
+    if (confirmed) {
+      setLoading(true);
+      try {
+        await deleteUbicacion(id);
+        fetchUbicaciones();
+      } catch (error) {
+        console.error("Error al eliminar la ubicación:", error);
+        alert("Hubo un error al intentar eliminar la ubicación."); 
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+  
+  // Renderizado Condicional: Login si no hay usuario
   if (authLoading) {
       return (
           <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-zinc-900">
@@ -333,60 +379,41 @@ export default function Home() {
   if (!currentUser) {
     return (
       <LoginScreen 
-        onLogin={() => {}} // No hace nada, onAuthStateChanged maneja la carga
+        error={authError}
+        onLogin={() => {}}
         onDisplayError={setAuthError} 
       />
     );
   }
-
-  // Handlers para las acciones CRUD
-
-  const handleOpenNew = () => {
-    setUbicacionToEdit(null); // Establece null para forzar el modo "Crear"
-    setIsModalOpen(true);
-  };
-
-  const handleOpenEdit = (ubicacion: Ubicacion) => {
-    setUbicacionToEdit(ubicacion); // Pasa la ubicación a editar
-    setIsModalOpen(true);
-  };
-
-  const handleDelete = async (id: string, nombre: string) => {
-    const confirmed = window.confirm(`¿Estás seguro de que quieres eliminar la ubicación "${nombre}"? Esta acción es irreversible.`);
-    
-    if (confirmed) {
-      setLoading(true);
-      try {
-        await deleteUbicacion(id);
-        fetchUbicaciones(); // Recarga la lista después de eliminar
-      } catch (error) {
-        console.error("Error al eliminar la ubicación:", error);
-        alert("Hubo un error al intentar eliminar la ubicación."); 
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
   
-  // Renderizado principal
+  // Renderizado principal (Autenticado)
   return (
     <div className="flex min-h-screen items-start justify-center p-4 md:p-10 bg-gray-50 dark:bg-zinc-900">
       
-      {/* Contenedor principal: 75% de ancho (md:w-3/4) */}
       <main className="w-full md:w-3/4 flex flex-col gap-8 bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-xl mx-auto">
         
         <header className="flex justify-between items-center border-b pb-4">
           <h1 className="text-3xl md:text-4xl font-extrabold text-zinc-900 dark:text-zinc-50">
             Catálogo de Ubicaciones
           </h1>
-          {/* Botón para crear nueva ubicación (Verde) */}
-          <button
-            onClick={handleOpenNew}
-            className="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition-colors disabled:opacity-50"
-            disabled={loading}
-          >
-            Nueva Ubicación
-          </button>
+          <div className="flex items-center space-x-4">
+            {/* 1. 🆕 BOTÓN DE CERRAR SESIÓN (Logout) */}
+            <button
+                onClick={handleLogout}
+                className="px-4 py-2 text-sm bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition-colors"
+            >
+                Cerrar Sesión
+            </button>
+
+            {/* Botón para crear nueva ubicación (Verde) */}
+            <button
+                onClick={handleOpenNew}
+                className="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition-colors disabled:opacity-50"
+                disabled={loading}
+            >
+                Nueva Ubicación
+            </button>
+          </div>
         </header>
         
         {loading ? (
@@ -400,7 +427,6 @@ export default function Home() {
             {ubicaciones.map((ubicacion) => (
               <article 
                 key={ubicacion.id} 
-                // Contenedor Flex para la Foto y la Info (Horizontal en escritorio)
                 className="p-5 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm hover:shadow-lg transition-shadow flex flex-col md:flex-row gap-5"
               >
                 {/* 4. Mostrar la Imagen de Supabase - Ocupa 25% en escritorio (md:w-1/4) */}

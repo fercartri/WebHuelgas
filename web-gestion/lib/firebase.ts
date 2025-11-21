@@ -50,15 +50,10 @@ export type UbicacionData = Omit<Ubicacion, 'id'>;
 
 const UBICACIONES_COLLECTION = "ubicaciones";
 
-/**
- * Obtiene todas las ubicaciones de la colección "ubicaciones" de Firestore, 
- * ordenadas por el campo 'orden'.
- * @returns {Promise<Ubicacion[]>} Lista de objetos de ubicación.
- */
 export async function getUbicaciones(): Promise<Ubicacion[]> {
   const ubicacionesRef = collection(db, UBICACIONES_COLLECTION);
   
-  const q = query(ubicacionesRef, orderBy("orden", "asc"));
+  const q = query(ubicacionesRef, orderBy("orden", "asc"));   // Ordenador por 'orden' ascendente
   
   const querySnapshot = await getDocs(q);
   

@@ -16,6 +16,8 @@ import {
   User,
 } from "@/lib/firebase";
 
+const AUTHORIZED_EMAIL = "aplicacionhuelgas360@gmail.com";
+
 type FormData = UbicacionData & { id?: string };
 
 // =========================================================================
@@ -318,10 +320,21 @@ export default function Home() {
   // Verificación de la sesión al cargar
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(user => {
-      setCurrentUser(user);
       setAuthLoading(false);
-      if (user) {
+      
+      if (user && user.email === AUTHORIZED_EMAIL) {
+        setCurrentUser(user);
         fetchUbicaciones();
+      } else {
+        // Para cualquier otro usuario (incluyendo el no autorizado que acaba de iniciar sesión),
+        // aseguramos que el estado de la UI esté deslogueado.
+        setCurrentUser(null);
+        if (user) {
+             // Cierra la sesión de Firebase para el usuario no autorizado
+             signOut(auth).catch(e => console.error("Error signing out non-authorized user:", e));
+             // Muestra el mensaje de error para que el usuario sepa que no es su cuenta.
+             setAuthError('Acceso denegado. Este email no está autorizado para la gestión.');
+        }
       }
     });
     return () => unsubscribe();

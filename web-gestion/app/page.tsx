@@ -67,13 +67,8 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
     setError('');
 
     try {
-      // 1. Transformar nombre a minúsculas
       const nombreLower = formData.nombre.toLowerCase(); 
-      
-      // 2. Limitar 'orden' a números positivos (0 en adelante).
       const ordenClamped = Math.max(0, Math.round(formData.orden));
-
-      // 3. Limitar coordenadas 'x' e 'y' entre 0 y 1.
       const xClamped = Math.max(0, Math.min(1, formData.x));
       const yClamped = Math.max(0, Math.min(1, formData.y));
       
@@ -88,17 +83,15 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
       };
 
       if (isEditing && formData.id) {
-        // Operación de MODIFICAR (Update)
         await updateUbicacion(formData.id, dataWithoutId);
       } else {
-        // Operación de CREAR (Create)
         await createUbicacion(dataWithoutId);
       }
       
-      refreshList(); // Recarga la lista principal
+      refreshList();
       onClose();
     } catch (err: any) {
-      setError(`Error al guardar: Permiso denegado o problema de conexión. ${err.message || 'Desconocido'}`);
+      setError(`Error al guardar: ${err.message || 'Desconocido'}`);
       console.error(err);
     } finally {
       setLoading(false);
@@ -139,7 +132,6 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
             />
           </label>
 
-          {/* Campo de URL Foto Supabase */}
           <label className="block">
             <span className="text-zinc-700 dark:text-zinc-300">URL Foto Supabase:</span>
             <input
@@ -152,7 +144,6 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
             />
           </label>
           
-          {/* Orden y Coordenadas */}
           <div className="flex space-x-4">
             <label className="block flex-1">
               <span className="text-zinc-700 dark:text-zinc-300">Orden (≥ 0):</span>
@@ -208,8 +199,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
             </button>
             <button
               type="submit"
-              // Uso de Tailwind dinámico para color del botón: ambar para editar, verde para crear
-              className={`px-4 py-2 rounded-lg text-white ${isEditing ? 'bg-amber-500 hover:bg-amber-600' : 'bg-green-600 hover:bg-green-700'} disabled:opacity-50`}
+              className={`px-4 py-2 rounded-lg text-white 'bg-green-600 hover:bg-green-700' disabled:opacity-50`}
               disabled={loading}
             >
               {loading ? 'Guardando...' : (isEditing ? 'Guardar Cambios' : 'Crear Ubicación')}
@@ -235,8 +225,6 @@ const LoginScreen = ({ onLogin, onDisplayError, error }: { onLogin: () => void, 
       onLogin(); 
     } catch (err: any) {
       console.error("Error de inicio de sesión:", err);
-      // Solo mostramos un error genérico si es un fallo de conexión/popup, 
-      // si es un error de permisos (auth/unauthorized-domain), se manejará en fetchUbicaciones o onAuthStateChanged
       const message = err.code === 'auth/popup-closed-by-user' 
         ? 'Inicio de sesión cancelado.' 
         : (err.code === 'auth/unauthorized-domain' ? 'Error de configuración de Firebase.' : '');
@@ -260,7 +248,7 @@ const LoginScreen = ({ onLogin, onDisplayError, error }: { onLogin: () => void, 
 
         <button
           onClick={handleGoogleSignIn}
-          className="w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+          className="w-full px-4 py-2 bg-white text-zinc-700 border border-zinc-300 font-semibold rounded-lg shadow-md hover:bg-zinc-100 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
           disabled={loading}
         >
           {loading ? (

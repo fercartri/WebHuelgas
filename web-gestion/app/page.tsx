@@ -199,7 +199,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
             </button>
             <button
               type="submit"
-              className={`px-4 py-2 rounded-lg text-white 'bg-green-600 hover:bg-green-700' disabled:opacity-50`}
+              className={`px-4 py-2 rounded-lg text-white bg-green-600 hover:bg-green-700 disabled:opacity-50`}
               disabled={loading}
             >
               {loading ? 'Guardando...' : (isEditing ? 'Guardar Cambios' : 'Crear Ubicación')}

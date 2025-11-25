@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from 'react';
+// 1. Añadimos useRef a los imports
+import { useState, useEffect, useRef } from 'react'; // <-- CAMBIO
 import { 
   getUbicaciones, 
   createUbicacion, 
@@ -14,23 +15,28 @@ import {
   signOut,
   signInWithPopup,
   User,
-} from "@/lib/firebase";
+} from "@/lib/firebase"; //
 
-const AUTHORIZED_EMAIL = "aplicacionhuelgas360@gmail.com";
+const AUTHORIZED_EMAIL = "aplicacionhuelgas360@gmail.com"; //
 
 type FormData = UbicacionData & { id?: string };
 
 // =========================================================================
 // Componente de Formulario Modal (Crear y Modificar)
 // =========================================================================
-const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: { 
+// 2. Actualizamos las props para recibir la lista existente
+const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existingUbicaciones }: { 
   isOpen: boolean, 
   onClose: () => void, 
   ubicacionToEdit: Ubicacion | null,
   refreshList: () => void,
+  existingUbicaciones: Ubicacion[], // <-- CAMBIO: Recibimos la lista actual
 }) => {
   const isEditing = !!ubicacionToEdit;
-  // Inicialización del estado del formulario, usando valores existentes si se está editando
+  
+  // Referencia para el input del nombre
+  const nombreInputRef = useRef<HTMLInputElement>(null); // <-- CAMBIO: Referencia para el foco
+
   const initialState: FormData = {
     nombre: ubicacionToEdit?.nombre || '',
     descripcion: ubicacionToEdit?.descripcion || '',
@@ -45,11 +51,18 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Sincroniza el estado del formulario cuando cambia la ubicación a editar o se abre el modal
   useEffect(() => {
     setFormData(initialState);
     setError('');
-  }, [ubicacionToEdit, isOpen]);
+
+    // 3. Lógica para el foco automático al abrir el modal
+    if (isOpen) {
+      // Un pequeño timeout asegura que el modal se ha renderizado antes de intentar el foco
+      setTimeout(() => {
+        nombreInputRef.current?.focus();
+      }, 50);
+    }
+  }, [ubicacionToEdit, isOpen]); // <-- CAMBIO
   
   if (!isOpen) return null;
 
@@ -67,12 +80,31 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
     setError('');
 
     try {
-      const nombreLower = formData.nombre.toLowerCase(); 
+      const nombreLower = formData.nombre.toLowerCase().trim(); // Normalizamos
       const ordenClamped = Math.max(0, Math.round(formData.orden));
       const xClamped = Math.max(0, Math.min(1, formData.x));
       const yClamped = Math.max(0, Math.min(1, formData.y));
       
-      // Construir el objeto de datos con las transformaciones y validaciones
+      // 4. Lógica para evitar duplicados
+      // Buscamos si existe alguna ubicación con el mismo nombre
+      const nombreDuplicado = existingUbicaciones.some(u => {
+        // Comparamos nombres en minúsculas
+        const isSameName = u.nombre.toLowerCase() === nombreLower;
+        // Si estamos editando, ignoramos la ubicación actual (para permitir guardar sin cambiar el nombre)
+        const isNotCurrentLocation = u.id !== formData.id;
+        
+        // Es duplicado si tiene el mismo nombre Y no es la que estamos editando
+        if (isEditing) {
+            return isSameName && isNotCurrentLocation;
+        }
+        // Si estamos creando, solo importa si tiene el mismo nombre
+        return isSameName;
+      });
+
+      if (nombreDuplicado) {
+        throw new Error("Ya existe una ubicación con ese nombre."); // <-- CAMBIO: Lanzamos error
+      }
+
       const dataWithoutId: UbicacionData = {
         nombre: nombreLower,
         descripcion: formData.descripcion,
@@ -91,7 +123,8 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
       refreshList();
       onClose();
     } catch (err: any) {
-      setError(`Error al guardar: ${err.message || 'Desconocido'}`);
+      // Mostramos el error (incluyendo el de duplicado)
+      setError(`${err.message || 'Error desconocido'}`); // <-- CAMBIO
       console.error(err);
     } finally {
       setLoading(false);
@@ -105,12 +138,14 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
           {isEditing ? 'Modificar Ubicación' : 'Nueva Ubicación'}
         </h2>
         
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+        {/* Mostramos el error en rojo si existe */}
+        {error && <p className="text-red-500 mb-4 font-bold">{error}</p>} 
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <label className="block">
             <span className="text-zinc-700 dark:text-zinc-300">Nombre:</span>
             <input
+              ref={nombreInputRef} // <-- CAMBIO: Asignamos la referencia aquí
               type="text"
               name="nombre"
               value={formData.nombre}
@@ -120,6 +155,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
             />
           </label>
           
+          {/* ... Resto de inputs sin cambios ... */}
           <label className="block">
             <span className="text-zinc-700 dark:text-zinc-300">Descripción:</span>
             <textarea
@@ -211,68 +247,67 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList }: {
   );
 };
 
-// =========================================================================
-// Componente de Login Screen
-// =========================================================================
+// ... (El componente LoginScreen se mantiene igual) ...
 const LoginScreen = ({ onLogin, onDisplayError, error }: { onLogin: () => void, onDisplayError: (msg: string) => void, error: string }) => {
-  const [loading, setLoading] = useState(false);
+    // ... (código de LoginScreen sin cambios) ...
+    const [loading, setLoading] = useState(false);
 
-  const handleGoogleSignIn = async () => {
-    setLoading(true);
-    onDisplayError('');
-    try {
-      await signInWithPopup(auth, googleProvider);
-      onLogin(); 
-    } catch (err: any) {
-      console.error("Error de inicio de sesión:", err);
-      const message = err.code === 'auth/popup-closed-by-user' 
-        ? 'Inicio de sesión cancelado.' 
-        : (err.code === 'auth/unauthorized-domain' ? 'Error de configuración de Firebase.' : '');
-        
-      if (message) {
-        onDisplayError(message);
+    const handleGoogleSignIn = async () => {
+      setLoading(true);
+      onDisplayError('');
+      try {
+        await signInWithPopup(auth, googleProvider);
+        onLogin(); 
+      } catch (err: any) {
+        console.error("Error de inicio de sesión:", err);
+        const message = err.code === 'auth/popup-closed-by-user' 
+          ? 'Inicio de sesión cancelado.' 
+          : (err.code === 'auth/unauthorized-domain' ? 'Error de configuración de Firebase.' : '');
+          
+        if (message) {
+          onDisplayError(message);
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-zinc-900">
-      <div className="p-8 bg-white dark:bg-zinc-800 rounded-xl shadow-2xl w-full max-w-sm text-center">
-        <h1 className="text-3xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">
-          Login de Administrador
-        </h1>
-        
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-
-        <button
-          onClick={handleGoogleSignIn}
-          className="w-full px-4 py-2 bg-white text-zinc-700 border border-zinc-300 font-semibold rounded-lg shadow-md hover:bg-zinc-100 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
-          disabled={loading}
-        >
-          {loading ? (
-            <span>Conectando...</span>
-          ) : (
-            <>
-              {/* Icono de Google */}
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.5-.2-2.22H12v4.26h6.39c-.28 1.45-1.17 2.76-2.5 3.63v3.1h4v-3.1c1.8-.93 3.01-2.9 3.01-5.32z" fill="#4285f4"></path><path d="M12 23c3.21 0 5.95-1.07 7.93-2.9l-4-3.1c-1.12.76-2.58 1.21-4.93 1.21-3.79 0-7.02-2.55-8.15-6.02H0v3.1h4C5.07 20.25 8.16 23 12 23z" fill="#34a853"></path><path d="M3.85 14.54c-.16-.48-.25-.98-.25-1.54s.09-1.06.25-1.54V8.4H0v3.1c0 1.05.18 2.05.51 3z" fill="#fbbc05"></path><path d="M12 4.19c1.78 0 3.3.61 4.54 1.76l3.44-3.37C17.95.84 15.21 0 12 0 8.16 0 5.07 2.75 3.85 6.22l4 3.1c1.13-3.47 4.36-6.03 8.15-6.03z" fill="#ea4335"></path></svg>
-              <span>Iniciar sesión con Google</span>
-            </>
-          )}
-        </button>
-        <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">Solo el administrador autorizado puede acceder.</p>
+    };
+  
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-zinc-900">
+        <div className="p-8 bg-white dark:bg-zinc-800 rounded-xl shadow-2xl w-full max-w-sm text-center">
+          <h1 className="text-3xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">
+            Login de Administrador
+          </h1>
+          
+          {error && <p className="text-red-500 mb-4">{error}</p>}
+  
+          <button
+            onClick={handleGoogleSignIn}
+            className="w-full px-4 py-2 bg-white text-zinc-700 border border-zinc-300 font-semibold rounded-lg shadow-md hover:bg-zinc-100 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+            disabled={loading}
+          >
+            {loading ? (
+              <span>Conectando...</span>
+            ) : (
+              <>
+                {/* Icono de Google */}
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.5-.2-2.22H12v4.26h6.39c-.28 1.45-1.17 2.76-2.5 3.63v3.1h4v-3.1c1.8-.93 3.01-2.9 3.01-5.32z" fill="#4285f4"></path><path d="M12 23c3.21 0 5.95-1.07 7.93-2.9l-4-3.1c-1.12.76-2.58 1.21-4.93 1.21-3.79 0-7.02-2.55-8.15-6.02H0v3.1h4C5.07 20.25 8.16 23 12 23z" fill="#34a853"></path><path d="M3.85 14.54c-.16-.48-.25-.98-.25-1.54s.09-1.06.25-1.54V8.4H0v3.1c0 1.05.18 2.05.51 3z" fill="#fbbc05"></path><path d="M12 4.19c1.78 0 3.3.61 4.54 1.76l3.44-3.37C17.95.84 15.21 0 12 0 8.16 0 5.07 2.75 3.85 6.22l4 3.1c1.13-3.47 4.36-6.03 8.15-6.03z" fill="#ea4335"></path></svg>
+                <span>Iniciar sesión con Google</span>
+              </>
+            )}
+          </button>
+          <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">Solo el administrador autorizado puede acceder.</p>
+        </div>
       </div>
-    </div>
-  );
+    );
 };
-
 
 // =========================================================================
 // Componente Principal Home
 // =========================================================================
 export default function Home() {
   const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([]);
+  // ... (resto de estados y funciones sin cambios) ...
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ubicacionToEdit, setUbicacionToEdit] = useState<Ubicacion | null>(null);
@@ -281,23 +316,19 @@ export default function Home() {
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState('');
 
-  // Función para cargar los datos y usarla en useEffect y después de CRUD
   const fetchUbicaciones = async () => {
     setLoading(true);
     try {
       const data = await getUbicaciones();
       setUbicaciones(data);
-      setAuthError(''); // Limpiar errores si la carga es exitosa
+      setAuthError('');
     } catch (error: any) {
-      // 🚨 CAMBIO DE SEGURIDAD Y UX: Si Firestore deniega el permiso (email no autorizado),
-      // Cerramos la sesión y volvemos al login SIN mostrar un mensaje de error explícito.
       if (error.code === 'permission-denied' || error.code === 'unavailable') {
         console.warn("Acceso denegado por reglas de seguridad. Redirigiendo a Login...");
-        await signOut(auth); // Cierra la sesión
-        setCurrentUser(null); // Actualiza el estado local
-        setAuthError(''); // 🆕 NO mostrar el error, simplemente redireccionar
+        await signOut(auth);
+        setCurrentUser(null);
+        setAuthError('');
       } else {
-        // Mostrar otros errores que no sean de 'permission-denied' o de conexión.
         console.error("Error al cargar ubicaciones:", error);
       }
     } finally {
@@ -305,7 +336,6 @@ export default function Home() {
     }
   };
 
-  // Verificación de la sesión al cargar
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(user => {
       setAuthLoading(false);
@@ -314,13 +344,9 @@ export default function Home() {
         setCurrentUser(user);
         fetchUbicaciones();
       } else {
-        // Para cualquier otro usuario (incluyendo el no autorizado que acaba de iniciar sesión),
-        // aseguramos que el estado de la UI esté deslogueado.
         setCurrentUser(null);
         if (user) {
-             // Cierra la sesión de Firebase para el usuario no autorizado
              signOut(auth).catch(e => console.error("Error signing out non-authorized user:", e));
-             // Muestra el mensaje de error para que el usuario sepa que no es su cuenta.
              setAuthError('Acceso denegado. Este email no está autorizado para la gestión.');
         }
       }
@@ -328,13 +354,12 @@ export default function Home() {
     return () => unsubscribe();
   }, []);
 
-  // 🆕 Función para cerrar sesión (Asegura el cierre de la sesión de Firebase)
   const handleLogout = async () => {
     try {
       await signOut(auth);
       setCurrentUser(null);
       setAuthError('');
-      setUbicaciones([]); // Limpiar datos
+      setUbicaciones([]);
       console.log("Sesión cerrada correctamente.");
     } catch (e) {
       console.error("Error al cerrar sesión:", e);
@@ -342,12 +367,11 @@ export default function Home() {
     }
   }
 
-  // Handlers para las acciones CRUD (sin cambios)
   const handleOpenNew = () => {
     setUbicacionToEdit(null); 
     setIsModalOpen(true);
   };
-  // ... (handleOpenEdit y handleDelete omitidos por brevedad, no hay cambios en su lógica)
+
   const handleOpenEdit = (ubicacion: Ubicacion) => {
     setUbicacionToEdit(ubicacion); 
     setIsModalOpen(true);
@@ -370,7 +394,6 @@ export default function Home() {
     }
   };
   
-  // Renderizado Condicional: Login si no hay usuario
   if (authLoading) {
       return (
           <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-zinc-900">
@@ -389,7 +412,6 @@ export default function Home() {
     );
   }
   
-  // Renderizado principal (Autenticado)
   return (
     <div className="flex min-h-screen items-start justify-center p-4 md:p-10 bg-gray-50 dark:bg-zinc-900">
       
@@ -407,7 +429,6 @@ export default function Home() {
                 Cerrar Sesión
             </button>
 
-            {/* Botón para crear nueva ubicación (Verde) */}
             <button
                 onClick={handleOpenNew}
                 className="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition-colors disabled:opacity-50"
@@ -431,7 +452,6 @@ export default function Home() {
                 key={ubicacion.id} 
                 className="p-5 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm hover:shadow-lg transition-shadow flex flex-col md:flex-row gap-5"
               >
-                {/* 4. Mostrar la Imagen de Supabase - Ocupa 25% en escritorio (md:w-1/4) */}
                 <div className="w-full md:w-1/4 flex-none"> 
                   {ubicacion.foto_url ? (
                     <Image 
@@ -448,7 +468,6 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* 5. Contenedor de la Información y Botones - Ocupa 75% restante (md:w-3/4) */}
                 <div className="md:w-3/4 flex flex-col justify-between"> 
                   <div>
                     <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{ubicacion.nombre.toUpperCase()}</h3>
@@ -464,9 +483,7 @@ export default function Home() {
                     </div>
                   </div>
                   
-                  {/* Contenedor de Botones (Alineado a la derecha/abajo) */}
                   <div className="flex justify-end space-x-3 mt-4">
-                    {/* Botón Modificar (Ambar) */}
                     <button
                       onClick={() => handleOpenEdit(ubicacion)}
                       className="px-3 py-1 bg-amber-500 text-white text-sm rounded-lg hover:bg-amber-600 transition-colors"
@@ -474,7 +491,6 @@ export default function Home() {
                     >
                       Modificar
                     </button>
-                    {/* Botón Eliminar (Rojo) */}
                     <button
                       onClick={() => handleDelete(ubicacion.id, ubicacion.nombre)}
                       className="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
@@ -490,12 +506,13 @@ export default function Home() {
         )}
       </main>
 
-      {/* Modal para Crear y Modificar */}
+      {/* 5. Pasamos la lista de ubicaciones al modal para que pueda verificar duplicados */}
       <UbicacionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         ubicacionToEdit={ubicacionToEdit}
         refreshList={fetchUbicaciones}
+        existingUbicaciones={ubicaciones} // <-- CAMBIO
       />
     </div>
   );

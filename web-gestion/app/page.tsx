@@ -1,8 +1,7 @@
 "use client";
 
 import Image from "next/image";
-// 1. Añadimos useRef a los imports
-import { useState, useEffect, useRef } from 'react'; // <-- CAMBIO
+import { useState, useEffect, useRef } from 'react';
 import { 
   getUbicaciones, 
   createUbicacion, 
@@ -15,27 +14,29 @@ import {
   signOut,
   signInWithPopup,
   User,
-} from "@/lib/firebase"; //
+} from "@/lib/firebase";
 
-const AUTHORIZED_EMAIL = "aplicacionhuelgas360@gmail.com"; //
+const AUTHORIZED_EMAIL = "aplicacionhuelgas360@gmail.com";
+
+// Definimos las opciones disponibles
+const TIPOS_UBICACION = ["Común", "Infantil", "Primaria", "ESO"];
 
 type FormData = UbicacionData & { id?: string };
 
 // =========================================================================
 // Componente de Formulario Modal (Crear y Modificar)
 // =========================================================================
-// 2. Actualizamos las props para recibir la lista existente
 const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existingUbicaciones }: { 
   isOpen: boolean, 
   onClose: () => void, 
   ubicacionToEdit: Ubicacion | null,
   refreshList: () => void,
-  existingUbicaciones: Ubicacion[], // <-- CAMBIO: Recibimos la lista actual
+  existingUbicaciones: Ubicacion[],
 }) => {
   const isEditing = !!ubicacionToEdit;
   
   // Referencia para el input del nombre
-  const nombreInputRef = useRef<HTMLInputElement>(null); // <-- CAMBIO: Referencia para el foco
+  const nombreInputRef = useRef<HTMLInputElement>(null);
 
   const initialState: FormData = {
     nombre: ubicacionToEdit?.nombre || '',
@@ -44,6 +45,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
     orden: ubicacionToEdit?.orden || 0,
     x: ubicacionToEdit?.x || 0,
     y: ubicacionToEdit?.y || 0,
+    tipo: ubicacionToEdit?.tipo || 'Común', // Valor por defecto
     id: ubicacionToEdit?.id,
   };
 
@@ -55,18 +57,16 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
     setFormData(initialState);
     setError('');
 
-    // 3. Lógica para el foco automático al abrir el modal
     if (isOpen) {
-      // Un pequeño timeout asegura que el modal se ha renderizado antes de intentar el foco
       setTimeout(() => {
         nombreInputRef.current?.focus();
       }, 50);
     }
-  }, [ubicacionToEdit, isOpen]); // <-- CAMBIO
+  }, [ubicacionToEdit, isOpen]); 
   
   if (!isOpen) return null;
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -80,29 +80,23 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
     setError('');
 
     try {
-      const nombreLower = formData.nombre.toLowerCase().trim(); // Normalizamos
+      const nombreLower = formData.nombre.toLowerCase().trim();
       const ordenClamped = Math.max(0, Math.round(formData.orden));
       const xClamped = Math.max(0, Math.min(1, formData.x));
       const yClamped = Math.max(0, Math.min(1, formData.y));
       
-      // 4. Lógica para evitar duplicados
-      // Buscamos si existe alguna ubicación con el mismo nombre
       const nombreDuplicado = existingUbicaciones.some(u => {
-        // Comparamos nombres en minúsculas
         const isSameName = u.nombre.toLowerCase() === nombreLower;
-        // Si estamos editando, ignoramos la ubicación actual (para permitir guardar sin cambiar el nombre)
         const isNotCurrentLocation = u.id !== formData.id;
         
-        // Es duplicado si tiene el mismo nombre Y no es la que estamos editando
         if (isEditing) {
             return isSameName && isNotCurrentLocation;
         }
-        // Si estamos creando, solo importa si tiene el mismo nombre
         return isSameName;
       });
 
       if (nombreDuplicado) {
-        throw new Error("Ya existe una ubicación con ese nombre."); // <-- CAMBIO: Lanzamos error
+        throw new Error("Ya existe una ubicación con ese nombre.");
       }
 
       const dataWithoutId: UbicacionData = {
@@ -112,6 +106,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
         orden: ordenClamped,
         x: xClamped,
         y: yClamped,
+        tipo: formData.tipo, // Enviamos el tipo seleccionado
       };
 
       if (isEditing && formData.id) {
@@ -123,8 +118,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
       refreshList();
       onClose();
     } catch (err: any) {
-      // Mostramos el error (incluyendo el de duplicado)
-      setError(`${err.message || 'Error desconocido'}`); // <-- CAMBIO
+      setError(`${err.message || 'Error desconocido'}`);
       console.error(err);
     } finally {
       setLoading(false);
@@ -138,14 +132,13 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
           {isEditing ? 'Modificar Ubicación' : 'Nueva Ubicación'}
         </h2>
         
-        {/* Mostramos el error en rojo si existe */}
         {error && <p className="text-red-500 mb-4 font-bold">{error}</p>} 
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <label className="block">
             <span className="text-zinc-700 dark:text-zinc-300">Nombre:</span>
             <input
-              ref={nombreInputRef} // <-- CAMBIO: Asignamos la referencia aquí
+              ref={nombreInputRef}
               type="text"
               name="nombre"
               value={formData.nombre}
@@ -154,8 +147,24 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
               className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
             />
           </label>
+
+          {/* Selector de Tipo añadido */}
+          <label className="block">
+            <span className="text-zinc-700 dark:text-zinc-300">Tipo:</span>
+            <select
+              name="tipo"
+              value={formData.tipo}
+              onChange={handleChange}
+              className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600 dark:text-white"
+            >
+              {TIPOS_UBICACION.map((tipo) => (
+                <option key={tipo} value={tipo}>
+                  {tipo}
+                </option>
+              ))}
+            </select>
+          </label>
           
-          {/* ... Resto de inputs sin cambios ... */}
           <label className="block">
             <span className="text-zinc-700 dark:text-zinc-300">Descripción:</span>
             <textarea
@@ -247,9 +256,10 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
   );
 };
 
-// ... (El componente LoginScreen se mantiene igual) ...
+// =========================================================================
+// Componente de Login
+// =========================================================================
 const LoginScreen = ({ onLogin, onDisplayError, error }: { onLogin: () => void, onDisplayError: (msg: string) => void, error: string }) => {
-    // ... (código de LoginScreen sin cambios) ...
     const [loading, setLoading] = useState(false);
 
     const handleGoogleSignIn = async () => {
@@ -290,7 +300,6 @@ const LoginScreen = ({ onLogin, onDisplayError, error }: { onLogin: () => void, 
               <span>Conectando...</span>
             ) : (
               <>
-                {/* Icono de Google */}
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.5-.2-2.22H12v4.26h6.39c-.28 1.45-1.17 2.76-2.5 3.63v3.1h4v-3.1c1.8-.93 3.01-2.9 3.01-5.32z" fill="#4285f4"></path><path d="M12 23c3.21 0 5.95-1.07 7.93-2.9l-4-3.1c-1.12.76-2.58 1.21-4.93 1.21-3.79 0-7.02-2.55-8.15-6.02H0v3.1h4C5.07 20.25 8.16 23 12 23z" fill="#34a853"></path><path d="M3.85 14.54c-.16-.48-.25-.98-.25-1.54s.09-1.06.25-1.54V8.4H0v3.1c0 1.05.18 2.05.51 3z" fill="#fbbc05"></path><path d="M12 4.19c1.78 0 3.3.61 4.54 1.76l3.44-3.37C17.95.84 15.21 0 12 0 8.16 0 5.07 2.75 3.85 6.22l4 3.1c1.13-3.47 4.36-6.03 8.15-6.03z" fill="#ea4335"></path></svg>
                 <span>Iniciar sesión con Google</span>
               </>
@@ -307,7 +316,6 @@ const LoginScreen = ({ onLogin, onDisplayError, error }: { onLogin: () => void, 
 // =========================================================================
 export default function Home() {
   const [ubicaciones, setUbicaciones] = useState<Ubicacion[]>([]);
-  // ... (resto de estados y funciones sin cambios) ...
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ubicacionToEdit, setUbicacionToEdit] = useState<Ubicacion | null>(null);
@@ -470,7 +478,20 @@ export default function Home() {
 
                 <div className="md:w-3/4 flex flex-col justify-between"> 
                   <div>
-                    <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{ubicacion.nombre.toUpperCase()}</h3>
+                    {/* Encabezado con Nombre y Badge de Tipo */}
+                    <div className="flex justify-between items-start">
+                        <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{ubicacion.nombre.toUpperCase()}</h3>
+                        
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full border 
+                            ${ubicacion.tipo === 'Común' ? 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-700 dark:text-gray-300' : ''}
+                            ${ubicacion.tipo === 'Infantil' ? 'bg-pink-100 text-pink-800 border-pink-300 dark:bg-pink-900/30 dark:text-pink-300' : ''}
+                            ${ubicacion.tipo === 'Primaria' ? 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300' : ''}
+                            ${ubicacion.tipo === 'ESO' ? 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300' : ''}
+                        `}>
+                            {ubicacion.tipo}
+                        </span>
+                    </div>
+
                     <p className="text-zinc-600 dark:text-zinc-300 mt-2">{ubicacion.descripcion}</p>
                     
                     <div className="mt-4 text-sm text-zinc-500 dark:text-zinc-400 border-t pt-3">
@@ -506,13 +527,12 @@ export default function Home() {
         )}
       </main>
 
-      {/* 5. Pasamos la lista de ubicaciones al modal para que pueda verificar duplicados */}
       <UbicacionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         ubicacionToEdit={ubicacionToEdit}
         refreshList={fetchUbicaciones}
-        existingUbicaciones={ubicaciones} // <-- CAMBIO
+        existingUbicaciones={ubicaciones}
       />
     </div>
   );

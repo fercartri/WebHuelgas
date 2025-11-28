@@ -43,6 +43,7 @@ export interface Ubicacion {
   orden: number;
   x: number;
   y: number;
+  tipo: string;
 }
 
 // Define el tipo de datos que se guardarán, excluyendo 'id'
@@ -52,9 +53,7 @@ const UBICACIONES_COLLECTION = "ubicaciones";
 
 export async function getUbicaciones(): Promise<Ubicacion[]> {
   const ubicacionesRef = collection(db, UBICACIONES_COLLECTION);
-  
-  const q = query(ubicacionesRef, orderBy("orden", "asc"));   // Ordenador por 'orden' ascendente
-  
+  const q = query(ubicacionesRef, orderBy("orden", "asc"));
   const querySnapshot = await getDocs(q);
   
   const ubicacionesList: Ubicacion[] = querySnapshot.docs.map(doc => {
@@ -68,6 +67,7 @@ export async function getUbicaciones(): Promise<Ubicacion[]> {
       orden: (data.orden as number) || 0,
       x: (data.x as number) || 0,
       y: (data.y as number) || 0,
+      tipo: (data.tipo as string) || 'Común', 
     };
   });
 

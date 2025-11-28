@@ -482,9 +482,8 @@ export default function Home() {
                 key={ubicacion.id} 
                 className="group p-6 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col md:flex-row gap-6 relative overflow-hidden"
               >
-                {/* Barra lateral de color según tipo MODIFICADA */}
                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 
-                  ${ubicacion.tipo === 'Común' ? 'bg-zinc-200 dark:bg-zinc-600' : ''}
+                  ${ubicacion.tipo === 'Común' ? 'bg-zinc-200 dark:bg-white-600' : ''}
                   ${ubicacion.tipo === 'Infantil' ? 'bg-red-500' : ''}
                   ${ubicacion.tipo === 'Primaria' ? 'bg-green-500' : ''}
                   ${ubicacion.tipo === 'ESO' ? 'bg-blue-500' : ''}
@@ -513,7 +512,6 @@ export default function Home() {
                     <div className="flex flex-wrap justify-between items-start gap-2 mb-3">
                         <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{ubicacion.nombre.toUpperCase()}</h3>
                         
-                        {/* BADGE DE TIPO MODIFICADO */}
                         <span className={`px-3 py-1 text-xs font-bold tracking-wide uppercase rounded-full border 
                             ${ubicacion.tipo === 'Común' ? 'bg-white text-zinc-700 border-zinc-300 dark:bg-zinc-700 dark:text-zinc-100 dark:border-zinc-500' : ''}
                             ${ubicacion.tipo === 'Infantil' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800' : ''}

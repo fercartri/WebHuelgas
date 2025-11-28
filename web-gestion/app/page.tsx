@@ -33,8 +33,6 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
   existingUbicaciones: Ubicacion[],
 }) => {
   const isEditing = !!ubicacionToEdit;
-  
-  // Referencia para el input del nombre
   const nombreInputRef = useRef<HTMLInputElement>(null);
 
   const initialState: FormData = {
@@ -128,7 +126,6 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
 
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center p-4">
-      {/* Fondo oscuro fijo (zinc-800) */}
       <div className="bg-zinc-800 p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col border border-zinc-700">
         <h2 className="text-3xl font-bold mb-6 text-zinc-50 border-b border-zinc-700 pb-4">
           {isEditing ? 'Modificar Ubicación' : 'Nueva Ubicación'}
@@ -250,7 +247,6 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
           </div>
 
           <div className="flex justify-end space-x-3 pt-6 border-t border-zinc-700">
-            {/* Botón Cancelar - Estilo rojo muy suave/grisáceo */}
             <button
               type="button"
               onClick={onClose}
@@ -260,7 +256,6 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
               Cancelar
             </button>
             
-            {/* Botón Guardar - Estilo dinámico según acción */}
             <button
               type="submit"
               className={`px-5 py-2.5 rounded-lg font-medium shadow-md transition-colors disabled:opacity-50 border bg-green-900/20 text-green-400 border-green-800 hover:bg-green-900/40`}
@@ -456,7 +451,6 @@ export default function Home() {
                 Cerrar Sesión
             </button>
 
-            {/* Botón Nueva Ubicación - Estilo Verde Translúcido */}
             <button
                 onClick={handleOpenNew}
                 className="px-5 py-2.5 bg-green-900/20 text-green-400 border border-green-800 font-semibold rounded-lg shadow-md hover:bg-green-900/40 transition-colors disabled:opacity-50 flex items-center"
@@ -485,7 +479,6 @@ export default function Home() {
                 key={ubicacion.id} 
                 className="group p-6 bg-zinc-800 border border-zinc-700 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col md:flex-row gap-6 relative overflow-hidden"
               >
-                {/* Barra lateral de color según tipo */}
                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 
                   ${ubicacion.tipo === 'Común' ? 'bg-white' : ''}
                   ${ubicacion.tipo === 'Infantil' ? 'bg-red-500' : ''}
@@ -516,7 +509,6 @@ export default function Home() {
                     <div className="flex flex-wrap justify-between items-start gap-2 mb-3">
                         <h3 className="text-2xl font-bold text-zinc-50">{ubicacion.nombre.toUpperCase()}</h3>
                         
-                        {/* BADGE DE TIPO */}
                         <span className={`px-3 py-1 text-xs font-bold tracking-wide uppercase rounded-full border 
                             ${ubicacion.tipo === 'Común' ? 'bg-zinc-700 text-zinc-100 border-zinc-500' : ''}
                             ${ubicacion.tipo === 'Infantil' ? 'bg-red-900/20 text-red-300 border-red-800' : ''}

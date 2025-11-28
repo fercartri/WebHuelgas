@@ -129,19 +129,20 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-zinc-800 p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col">
-        <h2 className="text-3xl font-bold mb-6 text-zinc-900 dark:text-zinc-50 border-b pb-4">
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center p-4">
+      {/* Fondo oscuro fijo (zinc-800) */}
+      <div className="bg-zinc-800 p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col border border-zinc-700">
+        <h2 className="text-3xl font-bold mb-6 text-zinc-50 border-b border-zinc-700 pb-4">
           {isEditing ? 'Modificar Ubicación' : 'Nueva Ubicación'}
         </h2>
         
-        {error && <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert"><p>{error}</p></div>}
+        {error && <div className="bg-red-900/30 border-l-4 border-red-500 text-red-200 p-4 mb-6" role="alert"><p>{error}</p></div>}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <label className="block">
-              <span className="text-zinc-700 dark:text-zinc-300 font-medium">Nombre:</span>
+              <span className="text-zinc-300 font-medium">Nombre:</span>
               <input
                 ref={nombreInputRef}
                 type="text"
@@ -149,17 +150,17 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
                 value={formData.nombre}
                 onChange={handleChange}
                 required
-                className="mt-1 block w-full p-2.5 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="mt-1 block w-full p-2.5 rounded-lg bg-zinc-700 border border-zinc-600 text-white focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </label>
 
             <label className="block">
-              <span className="text-zinc-700 dark:text-zinc-300 font-medium">Tipo:</span>
+              <span className="text-zinc-300 font-medium">Tipo:</span>
               <select
                 name="tipo"
                 value={formData.tipo}
                 onChange={handleChange}
-                className="mt-1 block w-full p-2.5 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+                className="mt-1 block w-full p-2.5 rounded-lg bg-zinc-700 border border-zinc-600 text-white focus:ring-2 focus:ring-blue-500 outline-none"
               >
                 {TIPOS_UBICACION.map((tipo) => (
                   <option key={tipo} value={tipo}>
@@ -171,45 +172,44 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
           </div>
           
           <label className="block">
-            <span className="text-zinc-700 dark:text-zinc-300 font-medium">Descripción (Español):</span>
+            <span className="text-zinc-300 font-medium">Descripción (Español):</span>
             <textarea
               name="descripcion"
               value={formData.descripcion}
               onChange={handleChange}
               rows={3}
               required
-              className="mt-1 block w-full p-2.5 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="mt-1 block w-full p-2.5 rounded-lg bg-zinc-700 border border-zinc-600 text-white focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </label>
 
           <label className="block">
-            <span className="text-zinc-700 dark:text-zinc-300 font-medium">Descripción (Inglés):</span>
+            <span className="text-zinc-300 font-medium">Descripción (Inglés):</span>
             <textarea
               name="descripcion_en"
               value={formData.descripcion_en}
               onChange={handleChange}
               rows={3}
-              required
-              className="mt-1 block w-full p-2.5 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 focus:ring-2 focus:ring-blue-500 outline-none"
+              className="mt-1 block w-full p-2.5 rounded-lg bg-zinc-700 border border-zinc-600 text-white focus:ring-2 focus:ring-blue-500 outline-none"
               placeholder="Description in English..."
             />
           </label>
 
           <label className="block">
-            <span className="text-zinc-700 dark:text-zinc-300 font-medium">URL Foto Supabase:</span>
+            <span className="text-zinc-300 font-medium">URL Foto Supabase:</span>
             <input
               type="text"
               name="foto_url"
               value={formData.foto_url}
               onChange={handleChange}
               required
-              className="mt-1 block w-full p-2.5 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+              className="mt-1 block w-full p-2.5 rounded-lg bg-zinc-700 border border-zinc-600 text-white focus:ring-2 focus:ring-blue-500 outline-none text-sm"
             />
           </label>
           
-          <div className="grid grid-cols-3 gap-4 bg-zinc-50 dark:bg-zinc-700/30 p-4 rounded-lg">
+          <div className="grid grid-cols-3 gap-4 bg-zinc-700/30 p-4 rounded-lg border border-zinc-700">
             <label className="block">
-              <span className="text-zinc-700 dark:text-zinc-300 font-medium text-sm">Orden:</span>
+              <span className="text-zinc-300 font-medium text-sm">Orden:</span>
               <input
                 type="number"
                 name="orden"
@@ -218,11 +218,11 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
                 required
                 min="0"
                 step="1"
-                className="mt-1 block w-full p-2 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="mt-1 block w-full p-2 rounded-lg bg-zinc-700 border border-zinc-600 text-white focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </label>
             <label className="block">
-              <span className="text-zinc-700 dark:text-zinc-300 font-medium text-sm">X (0-1):</span>
+              <span className="text-zinc-300 font-medium text-sm">X (0-1):</span>
               <input
                 type="number"
                 name="x"
@@ -232,11 +232,11 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
                 min="0"
                 max="1"
                 step="0.01"
-                className="mt-1 block w-full p-2 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="mt-1 block w-full p-2 rounded-lg bg-zinc-700 border border-zinc-600 text-white focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </label>
             <label className="block">
-              <span className="text-zinc-700 dark:text-zinc-300 font-medium text-sm">Y (0-1):</span>
+              <span className="text-zinc-300 font-medium text-sm">Y (0-1):</span>
               <input
                 type="number"
                 name="y"
@@ -246,16 +246,16 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
                 min="0"
                 max="1"
                 step="0.01"
-                className="mt-1 block w-full p-2 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 focus:ring-2 focus:ring-blue-500 outline-none"
+                className="mt-1 block w-full p-2 rounded-lg bg-zinc-700 border border-zinc-600 text-white focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </label>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-6 border-t dark:border-zinc-700">
+          <div className="flex justify-end space-x-3 pt-6 border-t border-zinc-700">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 text-zinc-700 border border-zinc-300 rounded-lg hover:bg-zinc-100 font-medium dark:text-zinc-300 dark:border-zinc-600 dark:hover:bg-zinc-700 transition-colors"
+              className="px-5 py-2.5 text-zinc-300 border border-zinc-600 rounded-lg hover:bg-zinc-700 font-medium transition-colors"
               disabled={loading}
             >
               Cancelar
@@ -301,13 +301,13 @@ const LoginScreen = ({ onLogin, onDisplayError, error }: { onLogin: () => void, 
     };
   
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-zinc-900">
-        <div className="p-8 bg-white dark:bg-zinc-800 rounded-xl shadow-2xl w-full max-w-sm text-center">
-          <h1 className="text-3xl font-bold mb-6 text-zinc-900 dark:text-zinc-50">
+      <div className="flex min-h-screen items-center justify-center bg-zinc-900">
+        <div className="p-8 bg-zinc-800 rounded-xl shadow-2xl w-full max-w-sm text-center border border-zinc-700">
+          <h1 className="text-3xl font-bold mb-6 text-zinc-50">
             Login de Administrador
           </h1>
           
-          {error && <p className="text-red-500 mb-4 font-medium bg-red-50 p-2 rounded">{error}</p>}
+          {error && <p className="text-red-400 mb-4 font-medium bg-red-900/20 p-2 rounded">{error}</p>}
   
           <button
             onClick={handleGoogleSignIn}
@@ -323,7 +323,7 @@ const LoginScreen = ({ onLogin, onDisplayError, error }: { onLogin: () => void, 
               </>
             )}
           </button>
-          <p className="mt-6 text-xs text-zinc-500 dark:text-zinc-400">Solo el administrador autorizado puede acceder.</p>
+          <p className="mt-6 text-xs text-zinc-400">Solo el administrador autorizado puede acceder.</p>
         </div>
       </div>
     );
@@ -422,8 +422,8 @@ export default function Home() {
   
   if (authLoading) {
       return (
-          <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-zinc-900">
-              <div className="animate-pulse text-lg text-zinc-600 dark:text-zinc-400">Cargando sesión...</div>
+          <div className="flex min-h-screen items-center justify-center bg-zinc-900">
+              <div className="animate-pulse text-lg text-zinc-400">Cargando sesión...</div>
           </div>
       );
   }
@@ -439,18 +439,18 @@ export default function Home() {
   }
   
   return (
-    <div className="flex min-h-screen items-start justify-center p-4 md:p-10 bg-gray-50 dark:bg-zinc-900">
+    <div className="flex min-h-screen items-start justify-center p-4 md:p-10 bg-zinc-900 text-zinc-50">
       
-      <main className="w-full md:w-4/5 lg:w-3/4 flex flex-col gap-8 bg-white dark:bg-zinc-800 p-8 rounded-2xl shadow-xl mx-auto">
+      <main className="w-full md:w-4/5 lg:w-3/4 flex flex-col gap-8 bg-zinc-800 p-8 rounded-2xl shadow-xl mx-auto border border-zinc-700">
         
-        <header className="flex flex-col md:flex-row justify-between items-center border-b border-zinc-200 dark:border-zinc-700 pb-6 gap-4">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-zinc-900 dark:text-zinc-50 tracking-tight">
+        <header className="flex flex-col md:flex-row justify-between items-center border-b border-zinc-700 pb-6 gap-4">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-zinc-50 tracking-tight">
             Gestión de Ubicaciones
           </h1>
           <div className="flex items-center space-x-4">
             <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm text-zinc-600 dark:text-zinc-300 font-medium hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                className="px-4 py-2 text-sm text-zinc-300 font-medium hover:text-red-400 transition-colors"
             >
                 Cerrar Sesión
             </button>
@@ -467,12 +467,12 @@ export default function Home() {
         
         {loading ? (
           <div className="text-center py-20">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-zinc-50 mb-4"></div>
-            <p className="text-lg text-zinc-600 dark:text-zinc-400">Cargando datos...</p>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-50 mb-4"></div>
+            <p className="text-lg text-zinc-400">Cargando datos...</p>
           </div>
         ) : ubicaciones.length === 0 ? (
-          <div className="text-center py-20 bg-zinc-50 dark:bg-zinc-700/30 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-600">
-            <p className="text-lg text-zinc-600 dark:text-zinc-400">
+          <div className="text-center py-20 bg-zinc-700/30 rounded-xl border border-dashed border-zinc-600">
+            <p className="text-lg text-zinc-400">
               Aún no hay ubicaciones registradas.
             </p>
           </div>
@@ -481,13 +481,14 @@ export default function Home() {
             {ubicaciones.map((ubicacion) => (
               <article 
                 key={ubicacion.id} 
-                className="group p-6 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col md:flex-row gap-6 relative overflow-hidden"
+                className="group p-6 bg-zinc-800 border border-zinc-700 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col md:flex-row gap-6 relative overflow-hidden"
               >
+                {/* Barra lateral de color según tipo */}
                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 
-                  ${ubicacion.tipo === 'Común' ? 'bg-zinc-200 dark:bg-white-600' : ''}
+                  ${ubicacion.tipo === 'Común' ? 'bg-zinc-600' : ''}
                   ${ubicacion.tipo === 'Infantil' ? 'bg-red-500' : ''}
                   ${ubicacion.tipo === 'Primaria' ? 'bg-green-500' : ''}
-                  ${ubicacion.tipo === 'ESO' ? 'bg-blue-500' : ''}
+                  ${ubicacion.tipo === 'ESO' ? 'bg-red-500' : ''}
                 `}></div>
 
                 <div className="w-full md:w-1/4 flex-none"> 
@@ -502,7 +503,7 @@ export default function Home() {
                         />
                     </div>
                   ) : (
-                    <div className="w-full h-40 bg-zinc-100 dark:bg-zinc-700 rounded-lg flex items-center justify-center text-sm text-zinc-400 dark:text-zinc-500 border border-dashed border-zinc-300 dark:border-zinc-600">
+                    <div className="w-full h-40 bg-zinc-700 rounded-lg flex items-center justify-center text-sm text-zinc-500 border border-dashed border-zinc-600">
                       Sin Imagen
                     </div>
                   )}
@@ -511,32 +512,31 @@ export default function Home() {
                 <div className="md:w-3/4 flex flex-col justify-between"> 
                   <div>
                     <div className="flex flex-wrap justify-between items-start gap-2 mb-3">
-                        <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{ubicacion.nombre.toUpperCase()}</h3>
+                        <h3 className="text-2xl font-bold text-zinc-50">{ubicacion.nombre.toUpperCase()}</h3>
                         
+                        {/* BADGE DE TIPO */}
                         <span className={`px-3 py-1 text-xs font-bold tracking-wide uppercase rounded-full border 
-                            ${ubicacion.tipo === 'Común' ? 'bg-white text-zinc-700 border-zinc-300 dark:bg-zinc-700 dark:text-zinc-100 dark:border-zinc-500' : ''}
-                            ${ubicacion.tipo === 'Infantil' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800' : ''}
-                            ${ubicacion.tipo === 'Primaria' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800' : ''}
-                            ${ubicacion.tipo === 'ESO' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800' : ''}
+                            ${ubicacion.tipo === 'Común' ? 'bg-zinc-700 text-zinc-100 border-zinc-500' : ''}
+                            ${ubicacion.tipo === 'Infantil' ? 'bg-red-900/20 text-red-300 border-red-800' : ''}
+                            ${ubicacion.tipo === 'Primaria' ? 'bg-green-900/20 text-green-300 border-green-800' : ''}
+                            ${ubicacion.tipo === 'ESO' ? 'bg-red-900/20 text-red-300 border-red-800' : ''}
                         `}>
                             {ubicacion.tipo.toUpperCase()}
                         </span>
                     </div>
 
                     <div className="space-y-2">
-                        {/* Añadido text-justify */}
-                        <p className="text-zinc-600 dark:text-zinc-300 text-sm leading-relaxed text-justify">
-                            <strong className="text-zinc-900 dark:text-zinc-100">ES:</strong> {ubicacion.descripcion}
+                        <p className="text-zinc-300 text-sm leading-relaxed text-justify">
+                            <strong className="text-zinc-100">ES:</strong> {ubicacion.descripcion}
                         </p>
                         {ubicacion.descripcion_en && (
-                            // Añadido text-justify
-                            <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed italic text-justify">
-                                <strong className="not-italic text-zinc-700 dark:text-zinc-300">EN:</strong> {ubicacion.descripcion_en}
+                            <p className="text-zinc-400 text-sm leading-relaxed italic text-justify">
+                                <strong className="not-italic text-zinc-300">EN:</strong> {ubicacion.descripcion_en}
                             </p>
                         )}
                     </div>
                     
-                    <div className="mt-4 flex gap-4 text-xs text-zinc-500 dark:text-zinc-400 border-t border-zinc-100 dark:border-zinc-700 pt-3">
+                    <div className="mt-4 flex gap-4 text-xs text-zinc-400 border-t border-zinc-700 pt-3">
                       <p className="flex items-center">
                         <span className="w-2 h-2 rounded-full bg-zinc-300 mr-2"></span>
                         Orden: <span className="font-mono font-bold ml-1">{ubicacion.orden}</span>
@@ -551,14 +551,14 @@ export default function Home() {
                   <div className="flex justify-end space-x-3 mt-5">
                     <button
                       onClick={() => handleOpenEdit(ubicacion)}
-                      className="px-4 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 text-sm font-medium rounded-lg hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/40 transition-colors"
+                      className="px-4 py-1.5 bg-amber-900/20 text-amber-400 border border-amber-800 text-sm font-medium rounded-lg hover:bg-amber-900/40 transition-colors"
                       disabled={loading}
                     >
                       Editar
                     </button>
                     <button
                       onClick={() => handleDelete(ubicacion.id, ubicacion.nombre)}
-                      className="px-4 py-1.5 bg-red-50 text-red-700 border border-red-200 text-sm font-medium rounded-lg hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/40 transition-colors"
+                      className="px-4 py-1.5 bg-red-900/20 text-red-400 border border-red-800 text-sm font-medium rounded-lg hover:bg-red-900/40 transition-colors"
                       disabled={loading}
                     >
                       Eliminar

@@ -189,6 +189,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
               value={formData.descripcion_en}
               onChange={handleChange}
               rows={3}
+              required
               className="mt-1 block w-full p-2.5 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 focus:ring-2 focus:ring-blue-500 outline-none"
               placeholder="Description in English..."
             />

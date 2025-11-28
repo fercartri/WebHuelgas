@@ -485,10 +485,10 @@ export default function Home() {
               >
                 {/* Barra lateral de color según tipo */}
                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 
-                  ${ubicacion.tipo === 'Común' ? 'bg-zinc-600' : ''}
+                  ${ubicacion.tipo === 'Común' ? 'bg-white-600' : ''}
                   ${ubicacion.tipo === 'Infantil' ? 'bg-red-500' : ''}
                   ${ubicacion.tipo === 'Primaria' ? 'bg-green-500' : ''}
-                  ${ubicacion.tipo === 'ESO' ? 'bg-red-500' : ''}
+                  ${ubicacion.tipo === 'ESO' ? 'bg-blue-500' : ''}
                 `}></div>
 
                 <div className="w-full md:w-1/4 flex-none"> 
@@ -519,7 +519,7 @@ export default function Home() {
                             ${ubicacion.tipo === 'Común' ? 'bg-zinc-700 text-zinc-100 border-zinc-500' : ''}
                             ${ubicacion.tipo === 'Infantil' ? 'bg-red-900/20 text-red-300 border-red-800' : ''}
                             ${ubicacion.tipo === 'Primaria' ? 'bg-green-900/20 text-green-300 border-green-800' : ''}
-                            ${ubicacion.tipo === 'ESO' ? 'bg-red-900/20 text-red-300 border-red-800' : ''}
+                            ${ubicacion.tipo === 'ESO' ? 'bg-blue-900/20 text-blue-300 border-blue-800' : ''}
                         `}>
                             {ubicacion.tipo.toUpperCase()}
                         </span>

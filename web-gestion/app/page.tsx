@@ -17,8 +17,6 @@ import {
 } from "@/lib/firebase";
 
 const AUTHORIZED_EMAIL = "aplicacionhuelgas360@gmail.com";
-
-// Definimos las opciones disponibles
 const TIPOS_UBICACION = ["Común", "Infantil", "Primaria", "ESO"];
 
 // Extendemos el tipo para incluir el ID opcional en el formulario

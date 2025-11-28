@@ -485,7 +485,7 @@ export default function Home() {
               >
                 {/* Barra lateral de color según tipo */}
                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 
-                  ${ubicacion.tipo === 'Común' ? 'bg-white-600' : ''}
+                  ${ubicacion.tipo === 'Común' ? 'bg-white' : ''}
                   ${ubicacion.tipo === 'Infantil' ? 'bg-red-500' : ''}
                   ${ubicacion.tipo === 'Primaria' ? 'bg-green-500' : ''}
                   ${ubicacion.tipo === 'ESO' ? 'bg-blue-500' : ''}

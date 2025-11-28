@@ -265,11 +265,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
             {/* Botón Guardar - Estilo dinámico según acción */}
             <button
               type="submit"
-              className={`px-5 py-2.5 rounded-lg font-medium shadow-md transition-colors disabled:opacity-50 border ${
-                isEditing 
-                  ? "bg-amber-900/20 text-amber-400 border-amber-800 hover:bg-amber-900/40" 
-                  : "bg-green-900/20 text-green-400 border-green-800 hover:bg-green-900/40"
-              }`}
+              className={`px-5 py-2.5 rounded-lg font-medium shadow-md transition-colors disabled:opacity-50 border bg-green-900/20 text-green-400 border-green-800 hover:bg-green-900/40`}
               disabled={loading}
             >
               {loading ? 'Guardando...' : (isEditing ? 'Guardar Cambios' : 'Crear Ubicación')}

@@ -177,7 +177,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
               name="descripcion"
               value={formData.descripcion}
               onChange={handleChange}
-              rows={3}
+              rows={5}
               required
               className="mt-1 block w-full p-2.5 rounded-lg bg-zinc-700 border border-zinc-600 text-white focus:ring-2 focus:ring-blue-500 outline-none"
             />
@@ -189,9 +189,9 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
               name="descripcion_en"
               value={formData.descripcion_en}
               onChange={handleChange}
-              rows={3}
+              rows={5}
+              required
               className="mt-1 block w-full p-2.5 rounded-lg bg-zinc-700 border border-zinc-600 text-white focus:ring-2 focus:ring-blue-500 outline-none"
-              placeholder="Description in English..."
             />
           </label>
 

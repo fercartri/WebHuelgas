@@ -487,13 +487,12 @@ export default function Home() {
                   ${ubicacion.tipo === 'Común' ? 'bg-zinc-200 dark:bg-zinc-600' : ''}
                   ${ubicacion.tipo === 'Infantil' ? 'bg-red-500' : ''}
                   ${ubicacion.tipo === 'Primaria' ? 'bg-green-500' : ''}
-                  ${ubicacion.tipo === 'ESO' ? 'bg-red-500' : ''}
+                  ${ubicacion.tipo === 'ESO' ? 'bg-blue-500' : ''}
                 `}></div>
 
                 <div className="w-full md:w-1/4 flex-none"> 
                   {ubicacion.foto_url ? (
                     <div className="relative w-full h-40 rounded-lg overflow-hidden shadow-md">
-                        {/* Se eliminó el hover scale y transition */}
                         <Image 
                         src={ubicacion.foto_url} 
                         alt={`Foto de ${ubicacion.nombre}`}
@@ -519,7 +518,7 @@ export default function Home() {
                             ${ubicacion.tipo === 'Común' ? 'bg-white text-zinc-700 border-zinc-300 dark:bg-zinc-700 dark:text-zinc-100 dark:border-zinc-500' : ''}
                             ${ubicacion.tipo === 'Infantil' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800' : ''}
                             ${ubicacion.tipo === 'Primaria' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800' : ''}
-                            ${ubicacion.tipo === 'ESO' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800' : ''}
+                            ${ubicacion.tipo === 'ESO' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800' : ''}
                         `}>
                             {ubicacion.tipo.toUpperCase()}
                         </span>

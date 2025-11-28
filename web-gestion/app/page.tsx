@@ -42,7 +42,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
   const initialState: FormData = {
     nombre: ubicacionToEdit?.nombre || '',
     descripcion: ubicacionToEdit?.descripcion || '',
-    descripcion_en: ubicacionToEdit?.descripcion_en || '', // <-- NUEVO CAMPO
+    descripcion_en: ubicacionToEdit?.descripcion_en || '',
     foto_url: ubicacionToEdit?.foto_url || '',
     orden: ubicacionToEdit?.orden || 0,
     x: ubicacionToEdit?.x || 0,
@@ -104,7 +104,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
       const dataWithoutId: UbicacionData = {
         nombre: nombreLower,
         descripcion: formData.descripcion,
-        descripcion_en: formData.descripcion_en, // <-- GUARDAMOS DESCRIPCIÓN EN INGLÉS
+        descripcion_en: formData.descripcion_en,
         foto_url: formData.foto_url,
         orden: ordenClamped,
         x: xClamped,
@@ -130,11 +130,6 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
 
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-      {/* CAMBIOS DE ESTILO AQUÍ:
-          - max-w-2xl: Más ancho
-          - max-h-[90vh]: Altura máxima del 90% de la ventana
-          - overflow-y-auto: Scroll vertical si el contenido es muy alto
-      */}
       <div className="bg-white dark:bg-zinc-800 p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col">
         <h2 className="text-3xl font-bold mb-6 text-zinc-900 dark:text-zinc-50 border-b pb-4">
           {isEditing ? 'Modificar Ubicación' : 'Nueva Ubicación'}
@@ -187,7 +182,6 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
             />
           </label>
 
-          {/* NUEVO INPUT: DESCRIPCIÓN EN INGLÉS */}
           <label className="block">
             <span className="text-zinc-700 dark:text-zinc-300 font-medium">Descripción (Inglés):</span>
             <textarea
@@ -488,22 +482,23 @@ export default function Home() {
                 key={ubicacion.id} 
                 className="group p-6 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col md:flex-row gap-6 relative overflow-hidden"
               >
-                {/* Barra lateral de color según tipo */}
+                {/* Barra lateral de color según tipo MODIFICADA */}
                 <div className={`absolute left-0 top-0 bottom-0 w-1.5 
-                  ${ubicacion.tipo === 'Común' ? 'bg-gray-400' : ''}
-                  ${ubicacion.tipo === 'Infantil' ? 'bg-pink-400' : ''}
-                  ${ubicacion.tipo === 'Primaria' ? 'bg-blue-400' : ''}
-                  ${ubicacion.tipo === 'ESO' ? 'bg-purple-400' : ''}
+                  ${ubicacion.tipo === 'Común' ? 'bg-zinc-200 dark:bg-zinc-600' : ''}
+                  ${ubicacion.tipo === 'Infantil' ? 'bg-red-500' : ''}
+                  ${ubicacion.tipo === 'Primaria' ? 'bg-green-500' : ''}
+                  ${ubicacion.tipo === 'ESO' ? 'bg-red-500' : ''}
                 `}></div>
 
                 <div className="w-full md:w-1/4 flex-none"> 
                   {ubicacion.foto_url ? (
                     <div className="relative w-full h-40 rounded-lg overflow-hidden shadow-md">
+                        {/* Se eliminó el hover scale y transition */}
                         <Image 
                         src={ubicacion.foto_url} 
                         alt={`Foto de ${ubicacion.nombre}`}
                         fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="object-cover" 
                         sizes="(max-width: 768px) 100vw, 25vw"
                         />
                     </div>
@@ -519,23 +514,25 @@ export default function Home() {
                     <div className="flex flex-wrap justify-between items-start gap-2 mb-3">
                         <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{ubicacion.nombre.toUpperCase()}</h3>
                         
-                        {/* BADGE DE TIPO CON MAYÚSCULAS */}
+                        {/* BADGE DE TIPO MODIFICADO */}
                         <span className={`px-3 py-1 text-xs font-bold tracking-wide uppercase rounded-full border 
-                            ${ubicacion.tipo === 'Común' ? 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700' : ''}
-                            ${ubicacion.tipo === 'Infantil' ? 'bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-900/20 dark:text-pink-300 dark:border-pink-800' : ''}
-                            ${ubicacion.tipo === 'Primaria' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800' : ''}
-                            ${ubicacion.tipo === 'ESO' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800' : ''}
+                            ${ubicacion.tipo === 'Común' ? 'bg-white text-zinc-700 border-zinc-300 dark:bg-zinc-700 dark:text-zinc-100 dark:border-zinc-500' : ''}
+                            ${ubicacion.tipo === 'Infantil' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800' : ''}
+                            ${ubicacion.tipo === 'Primaria' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800' : ''}
+                            ${ubicacion.tipo === 'ESO' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800' : ''}
                         `}>
                             {ubicacion.tipo.toUpperCase()}
                         </span>
                     </div>
 
                     <div className="space-y-2">
-                        <p className="text-zinc-600 dark:text-zinc-300 text-sm leading-relaxed">
+                        {/* Añadido text-justify */}
+                        <p className="text-zinc-600 dark:text-zinc-300 text-sm leading-relaxed text-justify">
                             <strong className="text-zinc-900 dark:text-zinc-100">ES:</strong> {ubicacion.descripcion}
                         </p>
                         {ubicacion.descripcion_en && (
-                            <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed italic">
+                            // Añadido text-justify
+                            <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed italic text-justify">
                                 <strong className="not-italic text-zinc-700 dark:text-zinc-300">EN:</strong> {ubicacion.descripcion_en}
                             </p>
                         )}

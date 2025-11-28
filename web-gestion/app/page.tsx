@@ -252,17 +252,24 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
           </div>
 
           <div className="flex justify-end space-x-3 pt-6 border-t border-zinc-700">
+            {/* Botón Cancelar - Estilo rojo muy suave/grisáceo */}
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2.5 text-zinc-300 border border-zinc-600 rounded-lg hover:bg-zinc-700 font-medium transition-colors"
+              className="px-5 py-2.5 bg-red-950/20 text-zinc-400 border border-red-900/20 rounded-lg hover:bg-red-900/20 hover:text-red-200 font-medium transition-colors"
               disabled={loading}
             >
               Cancelar
             </button>
+            
+            {/* Botón Guardar - Estilo dinámico según acción */}
             <button
               type="submit"
-              className={`px-5 py-2.5 rounded-lg text-white font-medium bg-green-600 hover:bg-green-700 shadow-md transition-colors disabled:opacity-50`}
+              className={`px-5 py-2.5 rounded-lg font-medium shadow-md transition-colors disabled:opacity-50 border ${
+                isEditing 
+                  ? "bg-amber-900/20 text-amber-400 border-amber-800 hover:bg-amber-900/40" 
+                  : "bg-green-900/20 text-green-400 border-green-800 hover:bg-green-900/40"
+              }`}
               disabled={loading}
             >
               {loading ? 'Guardando...' : (isEditing ? 'Guardar Cambios' : 'Crear Ubicación')}
@@ -455,9 +462,10 @@ export default function Home() {
                 Cerrar Sesión
             </button>
 
+            {/* Botón Nueva Ubicación - Estilo Verde Translúcido */}
             <button
                 onClick={handleOpenNew}
-                className="px-5 py-2.5 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center"
+                className="px-5 py-2.5 bg-green-900/20 text-green-400 border border-green-800 font-semibold rounded-lg shadow-md hover:bg-green-900/40 transition-colors disabled:opacity-50 flex items-center"
                 disabled={loading}
             >
                 <span className="mr-2 text-xl">+</span> Nueva Ubicación

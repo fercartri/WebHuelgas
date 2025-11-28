@@ -39,6 +39,7 @@ export interface Ubicacion {
   id: string;
   nombre: string;
   descripcion: string;
+  descripcion_en: string;
   foto_url: string;
   orden: number;
   x: number;
@@ -63,6 +64,7 @@ export async function getUbicaciones(): Promise<Ubicacion[]> {
       id: doc.id,
       nombre: (data.nombre as string) || 'Sin Nombre',
       descripcion: (data.descripcion as string) || 'Sin Descripción',
+      descripcion_en: (data.descripcion_en as string) || 'No Description',
       foto_url: (data.foto_url as string) || '',
       orden: (data.orden as number) || 0,
       x: (data.x as number) || 0,

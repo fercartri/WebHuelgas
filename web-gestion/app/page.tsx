@@ -21,6 +21,7 @@ const AUTHORIZED_EMAIL = "aplicacionhuelgas360@gmail.com";
 // Definimos las opciones disponibles
 const TIPOS_UBICACION = ["Común", "Infantil", "Primaria", "ESO"];
 
+// Extendemos el tipo para incluir el ID opcional en el formulario
 type FormData = UbicacionData & { id?: string };
 
 // =========================================================================
@@ -41,11 +42,12 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
   const initialState: FormData = {
     nombre: ubicacionToEdit?.nombre || '',
     descripcion: ubicacionToEdit?.descripcion || '',
+    descripcion_en: ubicacionToEdit?.descripcion_en || '', // <-- NUEVO CAMPO
     foto_url: ubicacionToEdit?.foto_url || '',
     orden: ubicacionToEdit?.orden || 0,
     x: ubicacionToEdit?.x || 0,
     y: ubicacionToEdit?.y || 0,
-    tipo: ubicacionToEdit?.tipo || 'Común', // Valor por defecto
+    tipo: ubicacionToEdit?.tipo || 'Común',
     id: ubicacionToEdit?.id,
   };
 
@@ -102,11 +104,12 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
       const dataWithoutId: UbicacionData = {
         nombre: nombreLower,
         descripcion: formData.descripcion,
+        descripcion_en: formData.descripcion_en, // <-- GUARDAMOS DESCRIPCIÓN EN INGLÉS
         foto_url: formData.foto_url,
         orden: ordenClamped,
         x: xClamped,
         y: yClamped,
-        tipo: formData.tipo, // Enviamos el tipo seleccionado
+        tipo: formData.tipo,
       };
 
       if (isEditing && formData.id) {
@@ -127,71 +130,91 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
 
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-2xl w-full max-w-lg">
-        <h2 className="text-2xl font-bold mb-4 text-zinc-900 dark:text-zinc-50">
+      {/* CAMBIOS DE ESTILO AQUÍ:
+          - max-w-2xl: Más ancho
+          - max-h-[90vh]: Altura máxima del 90% de la ventana
+          - overflow-y-auto: Scroll vertical si el contenido es muy alto
+      */}
+      <div className="bg-white dark:bg-zinc-800 p-8 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col">
+        <h2 className="text-3xl font-bold mb-6 text-zinc-900 dark:text-zinc-50 border-b pb-4">
           {isEditing ? 'Modificar Ubicación' : 'Nueva Ubicación'}
         </h2>
         
-        {error && <p className="text-red-500 mb-4 font-bold">{error}</p>} 
+        {error && <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" role="alert"><p>{error}</p></div>}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <label className="block">
-            <span className="text-zinc-700 dark:text-zinc-300">Nombre:</span>
-            <input
-              ref={nombreInputRef}
-              type="text"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              required
-              className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
-            />
-          </label>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <label className="block">
+              <span className="text-zinc-700 dark:text-zinc-300 font-medium">Nombre:</span>
+              <input
+                ref={nombreInputRef}
+                type="text"
+                name="nombre"
+                value={formData.nombre}
+                onChange={handleChange}
+                required
+                className="mt-1 block w-full p-2.5 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </label>
 
-          {/* Selector de Tipo añadido */}
-          <label className="block">
-            <span className="text-zinc-700 dark:text-zinc-300">Tipo:</span>
-            <select
-              name="tipo"
-              value={formData.tipo}
-              onChange={handleChange}
-              className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600 dark:text-white"
-            >
-              {TIPOS_UBICACION.map((tipo) => (
-                <option key={tipo} value={tipo}>
-                  {tipo}
-                </option>
-              ))}
-            </select>
-          </label>
+            <label className="block">
+              <span className="text-zinc-700 dark:text-zinc-300 font-medium">Tipo:</span>
+              <select
+                name="tipo"
+                value={formData.tipo}
+                onChange={handleChange}
+                className="mt-1 block w-full p-2.5 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                {TIPOS_UBICACION.map((tipo) => (
+                  <option key={tipo} value={tipo}>
+                    {tipo}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
           
           <label className="block">
-            <span className="text-zinc-700 dark:text-zinc-300">Descripción:</span>
+            <span className="text-zinc-700 dark:text-zinc-300 font-medium">Descripción (Español):</span>
             <textarea
               name="descripcion"
               value={formData.descripcion}
               onChange={handleChange}
               rows={3}
               required
-              className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
+              className="mt-1 block w-full p-2.5 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </label>
+
+          {/* NUEVO INPUT: DESCRIPCIÓN EN INGLÉS */}
+          <label className="block">
+            <span className="text-zinc-700 dark:text-zinc-300 font-medium">Descripción (Inglés):</span>
+            <textarea
+              name="descripcion_en"
+              value={formData.descripcion_en}
+              onChange={handleChange}
+              rows={3}
+              className="mt-1 block w-full p-2.5 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="Description in English..."
             />
           </label>
 
           <label className="block">
-            <span className="text-zinc-700 dark:text-zinc-300">URL Foto Supabase:</span>
+            <span className="text-zinc-700 dark:text-zinc-300 font-medium">URL Foto Supabase:</span>
             <input
               type="text"
               name="foto_url"
               value={formData.foto_url}
               onChange={handleChange}
               required
-              className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
+              className="mt-1 block w-full p-2.5 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
             />
           </label>
           
-          <div className="flex space-x-4">
-            <label className="block flex-1">
-              <span className="text-zinc-700 dark:text-zinc-300">Orden (≥ 0):</span>
+          <div className="grid grid-cols-3 gap-4 bg-zinc-50 dark:bg-zinc-700/30 p-4 rounded-lg">
+            <label className="block">
+              <span className="text-zinc-700 dark:text-zinc-300 font-medium text-sm">Orden:</span>
               <input
                 type="number"
                 name="orden"
@@ -200,11 +223,11 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
                 required
                 min="0"
                 step="1"
-                className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
+                className="mt-1 block w-full p-2 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </label>
-            <label className="block flex-1">
-              <span className="text-zinc-700 dark:text-zinc-300">Coord. X (0-1):</span>
+            <label className="block">
+              <span className="text-zinc-700 dark:text-zinc-300 font-medium text-sm">X (0-1):</span>
               <input
                 type="number"
                 name="x"
@@ -214,11 +237,11 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
                 min="0"
                 max="1"
                 step="0.01"
-                className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
+                className="mt-1 block w-full p-2 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </label>
-            <label className="block flex-1">
-              <span className="text-zinc-700 dark:text-zinc-300">Coord. Y (0-1):</span>
+            <label className="block">
+              <span className="text-zinc-700 dark:text-zinc-300 font-medium text-sm">Y (0-1):</span>
               <input
                 type="number"
                 name="y"
@@ -228,23 +251,23 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
                 min="0"
                 max="1"
                 step="0.01"
-                className="mt-1 block w-full p-2 border border-zinc-300 rounded-md dark:bg-zinc-700 dark:border-zinc-600"
+                className="mt-1 block w-full p-2 border border-zinc-300 rounded-lg dark:bg-zinc-700 dark:border-zinc-600 focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </label>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex justify-end space-x-3 pt-6 border-t dark:border-zinc-700">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-zinc-700 border border-zinc-300 rounded-lg hover:bg-zinc-100 dark:text-zinc-300 dark:border-zinc-600 dark:hover:bg-zinc-700"
+              className="px-5 py-2.5 text-zinc-700 border border-zinc-300 rounded-lg hover:bg-zinc-100 font-medium dark:text-zinc-300 dark:border-zinc-600 dark:hover:bg-zinc-700 transition-colors"
               disabled={loading}
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className={`px-4 py-2 rounded-lg text-white bg-green-600 hover:bg-green-700 disabled:opacity-50`}
+              className={`px-5 py-2.5 rounded-lg text-white font-medium bg-green-600 hover:bg-green-700 shadow-md transition-colors disabled:opacity-50`}
               disabled={loading}
             >
               {loading ? 'Guardando...' : (isEditing ? 'Guardar Cambios' : 'Crear Ubicación')}
@@ -289,11 +312,11 @@ const LoginScreen = ({ onLogin, onDisplayError, error }: { onLogin: () => void, 
             Login de Administrador
           </h1>
           
-          {error && <p className="text-red-500 mb-4">{error}</p>}
+          {error && <p className="text-red-500 mb-4 font-medium bg-red-50 p-2 rounded">{error}</p>}
   
           <button
             onClick={handleGoogleSignIn}
-            className="w-full px-4 py-2 bg-white text-zinc-700 border border-zinc-300 font-semibold rounded-lg shadow-md hover:bg-zinc-100 transition-colors disabled:opacity-50 flex items-center justify-center space-x-2"
+            className="w-full px-4 py-3 bg-white text-zinc-700 border border-zinc-300 font-semibold rounded-lg shadow-md hover:bg-zinc-50 transition-all disabled:opacity-50 flex items-center justify-center space-x-3"
             disabled={loading}
           >
             {loading ? (
@@ -305,7 +328,7 @@ const LoginScreen = ({ onLogin, onDisplayError, error }: { onLogin: () => void, 
               </>
             )}
           </button>
-          <p className="mt-4 text-xs text-zinc-500 dark:text-zinc-400">Solo el administrador autorizado puede acceder.</p>
+          <p className="mt-6 text-xs text-zinc-500 dark:text-zinc-400">Solo el administrador autorizado puede acceder.</p>
         </div>
       </div>
     );
@@ -405,7 +428,7 @@ export default function Home() {
   if (authLoading) {
       return (
           <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-zinc-900">
-              <p className="text-lg text-zinc-600 dark:text-zinc-400">Cargando sesión...</p>
+              <div className="animate-pulse text-lg text-zinc-600 dark:text-zinc-400">Cargando sesión...</div>
           </div>
       );
   }
@@ -423,54 +446,69 @@ export default function Home() {
   return (
     <div className="flex min-h-screen items-start justify-center p-4 md:p-10 bg-gray-50 dark:bg-zinc-900">
       
-      <main className="w-full md:w-3/4 flex flex-col gap-8 bg-white dark:bg-zinc-800 p-6 rounded-lg shadow-xl mx-auto">
+      <main className="w-full md:w-4/5 lg:w-3/4 flex flex-col gap-8 bg-white dark:bg-zinc-800 p-8 rounded-2xl shadow-xl mx-auto">
         
-        <header className="flex justify-between items-center border-b pb-4">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-zinc-900 dark:text-zinc-50">
-            Ubicaciones
+        <header className="flex flex-col md:flex-row justify-between items-center border-b border-zinc-200 dark:border-zinc-700 pb-6 gap-4">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-zinc-900 dark:text-zinc-50 tracking-tight">
+            Gestión de Ubicaciones
           </h1>
           <div className="flex items-center space-x-4">
             <button
                 onClick={handleLogout}
-                className="px-4 py-2 text-sm bg-red-600 text-white font-semibold rounded-lg shadow-md hover:bg-red-700 transition-colors"
+                className="px-4 py-2 text-sm text-zinc-600 dark:text-zinc-300 font-medium hover:text-red-600 dark:hover:text-red-400 transition-colors"
             >
                 Cerrar Sesión
             </button>
 
             <button
                 onClick={handleOpenNew}
-                className="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition-colors disabled:opacity-50"
+                className="px-5 py-2.5 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center"
                 disabled={loading}
             >
-                Nueva Ubicación
+                <span className="mr-2 text-xl">+</span> Nueva Ubicación
             </button>
           </div>
         </header>
         
         {loading ? (
-          <p className="text-center text-lg text-zinc-600 dark:text-zinc-400 p-10">Cargando ubicaciones...</p>
+          <div className="text-center py-20">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-900 dark:border-zinc-50 mb-4"></div>
+            <p className="text-lg text-zinc-600 dark:text-zinc-400">Cargando datos...</p>
+          </div>
         ) : ubicaciones.length === 0 ? (
-          <p className="text-center text-lg text-zinc-600 dark:text-zinc-400 p-10">
-            Aún no hay ubicaciones.
-          </p>
+          <div className="text-center py-20 bg-zinc-50 dark:bg-zinc-700/30 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-600">
+            <p className="text-lg text-zinc-600 dark:text-zinc-400">
+              Aún no hay ubicaciones registradas.
+            </p>
+          </div>
         ) : (
           <div className="space-y-6">
             {ubicaciones.map((ubicacion) => (
               <article 
                 key={ubicacion.id} 
-                className="p-5 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm hover:shadow-lg transition-shadow flex flex-col md:flex-row gap-5"
+                className="group p-6 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col md:flex-row gap-6 relative overflow-hidden"
               >
+                {/* Barra lateral de color según tipo */}
+                <div className={`absolute left-0 top-0 bottom-0 w-1.5 
+                  ${ubicacion.tipo === 'Común' ? 'bg-gray-400' : ''}
+                  ${ubicacion.tipo === 'Infantil' ? 'bg-pink-400' : ''}
+                  ${ubicacion.tipo === 'Primaria' ? 'bg-blue-400' : ''}
+                  ${ubicacion.tipo === 'ESO' ? 'bg-purple-400' : ''}
+                `}></div>
+
                 <div className="w-full md:w-1/4 flex-none"> 
                   {ubicacion.foto_url ? (
-                    <Image 
-                      src={ubicacion.foto_url} 
-                      alt={`Foto de ${ubicacion.nombre}`}
-                      width={200}
-                      height={150}
-                      className="w-full h-36 object-cover rounded-lg"
-                    />
+                    <div className="relative w-full h-40 rounded-lg overflow-hidden shadow-md">
+                        <Image 
+                        src={ubicacion.foto_url} 
+                        alt={`Foto de ${ubicacion.nombre}`}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        sizes="(max-width: 768px) 100vw, 25vw"
+                        />
+                    </div>
                   ) : (
-                    <div className="w-full h-36 bg-gray-200 dark:bg-zinc-700 rounded-lg flex items-center justify-center text-sm text-zinc-500 dark:text-zinc-400">
+                    <div className="w-full h-40 bg-zinc-100 dark:bg-zinc-700 rounded-lg flex items-center justify-center text-sm text-zinc-400 dark:text-zinc-500 border border-dashed border-zinc-300 dark:border-zinc-600">
                       Sin Imagen
                     </div>
                   )}
@@ -478,43 +516,54 @@ export default function Home() {
 
                 <div className="md:w-3/4 flex flex-col justify-between"> 
                   <div>
-                    {/* Encabezado con Nombre y Badge de Tipo */}
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-wrap justify-between items-start gap-2 mb-3">
                         <h3 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">{ubicacion.nombre.toUpperCase()}</h3>
                         
-                        <span className={`px-2 py-1 text-xs font-semibold rounded-full border 
-                            ${ubicacion.tipo === 'Común' ? 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-700 dark:text-gray-300' : ''}
-                            ${ubicacion.tipo === 'Infantil' ? 'bg-pink-100 text-pink-800 border-pink-300 dark:bg-pink-900/30 dark:text-pink-300' : ''}
-                            ${ubicacion.tipo === 'Primaria' ? 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300' : ''}
-                            ${ubicacion.tipo === 'ESO' ? 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300' : ''}
+                        {/* BADGE DE TIPO CON MAYÚSCULAS */}
+                        <span className={`px-3 py-1 text-xs font-bold tracking-wide uppercase rounded-full border 
+                            ${ubicacion.tipo === 'Común' ? 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700' : ''}
+                            ${ubicacion.tipo === 'Infantil' ? 'bg-pink-50 text-pink-700 border-pink-200 dark:bg-pink-900/20 dark:text-pink-300 dark:border-pink-800' : ''}
+                            ${ubicacion.tipo === 'Primaria' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800' : ''}
+                            ${ubicacion.tipo === 'ESO' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800' : ''}
                         `}>
-                            {ubicacion.tipo}
+                            {ubicacion.tipo.toUpperCase()}
                         </span>
                     </div>
 
-                    <p className="text-zinc-600 dark:text-zinc-300 mt-2">{ubicacion.descripcion}</p>
+                    <div className="space-y-2">
+                        <p className="text-zinc-600 dark:text-zinc-300 text-sm leading-relaxed">
+                            <strong className="text-zinc-900 dark:text-zinc-100">ES:</strong> {ubicacion.descripcion}
+                        </p>
+                        {ubicacion.descripcion_en && (
+                            <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed italic">
+                                <strong className="not-italic text-zinc-700 dark:text-zinc-300">EN:</strong> {ubicacion.descripcion_en}
+                            </p>
+                        )}
+                    </div>
                     
-                    <div className="mt-4 text-sm text-zinc-500 dark:text-zinc-400 border-t pt-3">
-                      <p>
-                        Orden de Aparición: <span className="font-semibold">{ubicacion.orden}</span>
+                    <div className="mt-4 flex gap-4 text-xs text-zinc-500 dark:text-zinc-400 border-t border-zinc-100 dark:border-zinc-700 pt-3">
+                      <p className="flex items-center">
+                        <span className="w-2 h-2 rounded-full bg-zinc-300 mr-2"></span>
+                        Orden: <span className="font-mono font-bold ml-1">{ubicacion.orden}</span>
                       </p>
-                      <p>
-                        Coordenadas (X, Y): ({ubicacion.x}, {ubicacion.y})
+                      <p className="flex items-center">
+                        <span className="w-2 h-2 rounded-full bg-zinc-300 mr-2"></span>
+                        Pos: <span className="font-mono ml-1">({ubicacion.x}, {ubicacion.y})</span>
                       </p>
                     </div>
                   </div>
                   
-                  <div className="flex justify-end space-x-3 mt-4">
+                  <div className="flex justify-end space-x-3 mt-5">
                     <button
                       onClick={() => handleOpenEdit(ubicacion)}
-                      className="px-3 py-1 bg-amber-500 text-white text-sm rounded-lg hover:bg-amber-600 transition-colors"
+                      className="px-4 py-1.5 bg-amber-50 text-amber-700 border border-amber-200 text-sm font-medium rounded-lg hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800 dark:hover:bg-amber-900/40 transition-colors"
                       disabled={loading}
                     >
-                      Modificar
+                      Editar
                     </button>
                     <button
                       onClick={() => handleDelete(ubicacion.id, ubicacion.nombre)}
-                      className="px-3 py-1 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
+                      className="px-4 py-1.5 bg-red-50 text-red-700 border border-red-200 text-sm font-medium rounded-lg hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/40 transition-colors"
                       disabled={loading}
                     >
                       Eliminar

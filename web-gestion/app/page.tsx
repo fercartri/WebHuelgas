@@ -27,6 +27,24 @@ const PRIORITY_ORDER: { [key: string]: number } = {
   "ESO": 4
 };
 
+// Helper para obtener el color del botón activo
+const getActiveClass = (tipo: string) => {
+  switch (tipo) {
+    case "Todas": 
+      return "bg-zinc-500 text-white border-zinc-400"; // Gris oscuro destacado
+    case "Común": 
+      return "bg-white text-zinc-900 border-white"; // Blanco con texto oscuro
+    case "Infantil": 
+      return "bg-red-600 text-white border-red-500"; // Rojo
+    case "Primaria": 
+      return "bg-green-600 text-white border-green-500"; // Verde
+    case "ESO": 
+      return "bg-blue-600 text-white border-blue-500"; // Azul
+    default: 
+      return "bg-blue-500 text-white border-blue-500";
+  }
+};
+
 // Extendemos el tipo para incluir el ID opcional en el formulario
 type FormData = UbicacionData & { id?: string };
 
@@ -498,13 +516,12 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Filtros de Tipo */}
           <div className="flex flex-wrap gap-2">
             <button
                 onClick={() => setSelectedFilter("Todas")}
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all border ${
                     selectedFilter === "Todas"
-                    ? "bg-zinc-100 text-zinc-900 border-zinc-100"
+                    ? getActiveClass("Todas")
                     : "bg-zinc-700 text-zinc-300 border-zinc-600 hover:bg-zinc-600"
                 }`}
             >
@@ -516,7 +533,7 @@ export default function Home() {
                     onClick={() => setSelectedFilter(tipo)}
                     className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all border ${
                         selectedFilter === tipo
-                        ? "bg-blue-500 text-white border-blue-500"
+                        ? getActiveClass(tipo)
                         : "bg-zinc-700 text-zinc-300 border-zinc-600 hover:bg-zinc-600"
                     }`}
                 >

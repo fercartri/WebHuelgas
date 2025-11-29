@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   getUbicaciones, 
   createUbicacion, 
@@ -18,6 +18,14 @@ import {
 
 const AUTHORIZED_EMAIL = "aplicacionhuelgas360@gmail.com";
 const TIPOS_UBICACION = ["Común", "Infantil", "Primaria", "ESO"];
+
+// Definimos el orden de prioridad para la visualización
+const PRIORITY_ORDER: { [key: string]: number } = {
+  "Común": 1,
+  "Infantil": 2,
+  "Primaria": 3,
+  "ESO": 4
+};
 
 // Extendemos el tipo para incluir el ID opcional en el formulario
 type FormData = UbicacionData & { id?: string };
@@ -333,10 +341,38 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [ubicacionToEdit, setUbicacionToEdit] = useState<Ubicacion | null>(null);
+  const [selectedFilter, setSelectedFilter] = useState("Todas");
   
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState('');
+
+  // 1. Filtrado y Ordenación del lado del cliente
+  const processedUbicaciones = useMemo(() => {
+    // Primero clonamos para no mutar el estado original
+    let data = [...ubicaciones];
+
+    // Paso A: Filtrar
+    if (selectedFilter !== "Todas") {
+      data = data.filter(u => u.tipo === selectedFilter);
+    }
+
+    // Paso B: Ordenar
+    data.sort((a, b) => {
+      // 1. Comparar prioridad de tipo
+      const prioA = PRIORITY_ORDER[a.tipo] || 99; // 99 para tipos desconocidos
+      const prioB = PRIORITY_ORDER[b.tipo] || 99;
+
+      if (prioA !== prioB) {
+        return prioA - prioB; // Menor número = mayor prioridad
+      }
+
+      // 2. Si son del mismo tipo, comparar por campo 'orden'
+      return a.orden - b.orden;
+    });
+
+    return data;
+  }, [ubicaciones, selectedFilter]);
 
   const fetchUbicaciones = async () => {
     setLoading(true);
@@ -439,25 +475,54 @@ export default function Home() {
       
       <main className="w-full md:w-4/5 lg:w-3/4 flex flex-col gap-8 bg-zinc-800 p-8 rounded-2xl shadow-xl mx-auto border border-zinc-700">
         
-        <header className="flex flex-col md:flex-row justify-between items-center border-b border-zinc-700 pb-6 gap-4">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-zinc-50 tracking-tight">
-            Gestión de Ubicaciones
-          </h1>
-          <div className="flex items-center space-x-4">
-            <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-sm text-zinc-300 font-medium hover:text-red-400 transition-colors"
-            >
-                Cerrar Sesión
-            </button>
+        <header className="flex flex-col border-b border-zinc-700 pb-6 gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <h1 className="text-3xl md:text-4xl font-extrabold text-zinc-50 tracking-tight">
+                Gestión de Ubicaciones
+            </h1>
+            <div className="flex items-center space-x-4">
+                <button
+                    onClick={handleLogout}
+                    className="px-4 py-2 text-sm text-zinc-300 font-medium hover:text-red-400 transition-colors"
+                >
+                    Cerrar Sesión
+                </button>
 
+                <button
+                    onClick={handleOpenNew}
+                    className="px-5 py-2.5 bg-green-900/20 text-green-400 border border-green-800 font-semibold rounded-lg shadow-md hover:bg-green-900/40 transition-colors disabled:opacity-50 flex items-center"
+                    disabled={loading}
+                >
+                    <span className="mr-2 text-xl">+</span> Nueva Ubicación
+                </button>
+            </div>
+          </div>
+
+          {/* Filtros de Tipo */}
+          <div className="flex flex-wrap gap-2">
             <button
-                onClick={handleOpenNew}
-                className="px-5 py-2.5 bg-green-900/20 text-green-400 border border-green-800 font-semibold rounded-lg shadow-md hover:bg-green-900/40 transition-colors disabled:opacity-50 flex items-center"
-                disabled={loading}
+                onClick={() => setSelectedFilter("Todas")}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all border ${
+                    selectedFilter === "Todas"
+                    ? "bg-zinc-100 text-zinc-900 border-zinc-100"
+                    : "bg-zinc-700 text-zinc-300 border-zinc-600 hover:bg-zinc-600"
+                }`}
             >
-                <span className="mr-2 text-xl">+</span> Nueva Ubicación
+                Todas
             </button>
+            {TIPOS_UBICACION.map(tipo => (
+                <button
+                    key={tipo}
+                    onClick={() => setSelectedFilter(tipo)}
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all border ${
+                        selectedFilter === tipo
+                        ? "bg-blue-500 text-white border-blue-500"
+                        : "bg-zinc-700 text-zinc-300 border-zinc-600 hover:bg-zinc-600"
+                    }`}
+                >
+                    {tipo}
+                </button>
+            ))}
           </div>
         </header>
         
@@ -472,9 +537,15 @@ export default function Home() {
               Aún no hay ubicaciones registradas.
             </p>
           </div>
+        ) : processedUbicaciones.length === 0 ? (
+            <div className="text-center py-20 bg-zinc-700/30 rounded-xl border border-dashed border-zinc-600">
+                <p className="text-lg text-zinc-400">
+                No hay ubicaciones de tipo "{selectedFilter}".
+                </p>
+            </div>
         ) : (
           <div className="space-y-6">
-            {ubicaciones.map((ubicacion) => (
+            {processedUbicaciones.map((ubicacion) => (
               <article 
                 key={ubicacion.id} 
                 className="group p-6 bg-zinc-800 border border-zinc-700 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col md:flex-row gap-6 relative overflow-hidden"

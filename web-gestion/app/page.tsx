@@ -616,7 +616,7 @@ export default function Home() {
                             <h3 className="text-2xl font-bold text-zinc-50">{ubicacion.nombre.toUpperCase()}</h3>
                             {ubicacion.nombre_en && (
                                 <span className="text-sm text-zinc-400 italic font-medium">
-                                    {ubicacion.nombre_en}
+                                    {ubicacion.nombre_en.toUpperCase()}
                                 </span>
                             )}
                         </div>

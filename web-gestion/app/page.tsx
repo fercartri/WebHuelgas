@@ -185,7 +185,6 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
                 value={formData.nombre_en}
                 onChange={handleChange}
                 required
-                placeholder="Ej: Primary Classroom"
                 className="mt-1 block w-full p-2.5 rounded-lg bg-zinc-700 border border-zinc-600 text-white focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </label>

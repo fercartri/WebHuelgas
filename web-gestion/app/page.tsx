@@ -63,6 +63,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
 
   const initialState: FormData = {
     nombre: ubicacionToEdit?.nombre || '',
+    nombre_en: ubicacionToEdit?.nombre_en || '',
     descripcion: ubicacionToEdit?.descripcion || '',
     descripcion_en: ubicacionToEdit?.descripcion_en || '',
     foto_url: ubicacionToEdit?.foto_url || '',
@@ -105,6 +106,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
 
     try {
       const nombreLower = formData.nombre.toLowerCase().trim();
+      const nombreEnLower = formData.nombre_en.toLowerCase().trim();
       const ordenClamped = Math.max(0, Math.round(formData.orden));
       const xClamped = Math.max(0, Math.min(1, formData.x));
       const yClamped = Math.max(0, Math.min(1, formData.y));
@@ -125,6 +127,7 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
 
       const dataWithoutId: UbicacionData = {
         nombre: nombreLower,
+        nombre_en: nombreEnLower,
         descripcion: formData.descripcion,
         descripcion_en: formData.descripcion_en,
         foto_url: formData.foto_url,
@@ -160,10 +163,9 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
         {error && <div className="bg-red-900/30 border-l-4 border-red-500 text-red-200 p-4 mb-6" role="alert"><p>{error}</p></div>}
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <label className="block">
-              <span className="text-zinc-300 font-medium">Nombre:</span>
+              <span className="text-zinc-300 font-medium">Nombre (Español):</span>
               <input
                 ref={nombreInputRef}
                 type="text"
@@ -176,6 +178,21 @@ const UbicacionModal = ({ isOpen, onClose, ubicacionToEdit, refreshList, existin
             </label>
 
             <label className="block">
+              <span className="text-zinc-300 font-medium">Nombre (Inglés):</span>
+              <input
+                type="text"
+                name="nombre_en"
+                value={formData.nombre_en}
+                onChange={handleChange}
+                required
+                placeholder="Ej: Primary Classroom"
+                className="mt-1 block w-full p-2.5 rounded-lg bg-zinc-700 border border-zinc-600 text-white focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </label>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-5">
+             <label className="block">
               <span className="text-zinc-300 font-medium">Tipo:</span>
               <select
                 name="tipo"
@@ -595,7 +612,14 @@ export default function Home() {
                 <div className="md:w-3/4 flex flex-col justify-between"> 
                   <div>
                     <div className="flex flex-wrap justify-between items-start gap-2 mb-3">
-                        <h3 className="text-2xl font-bold text-zinc-50">{ubicacion.nombre.toUpperCase()}</h3>
+                        <div className="flex flex-col">
+                            <h3 className="text-2xl font-bold text-zinc-50">{ubicacion.nombre.toUpperCase()}</h3>
+                            {ubicacion.nombre_en && (
+                                <span className="text-sm text-zinc-400 italic font-medium">
+                                    {ubicacion.nombre_en}
+                                </span>
+                            )}
+                        </div>
                         
                         <span className={`px-3 py-1 text-xs font-bold tracking-wide uppercase rounded-full border 
                             ${ubicacion.tipo === 'Común' ? 'bg-zinc-700 text-zinc-100 border-zinc-500' : ''}

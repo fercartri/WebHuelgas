@@ -38,6 +38,7 @@ export type { User };
 export interface Ubicacion {
   id: string;
   nombre: string;
+  nombre_en: string;
   descripcion: string;
   descripcion_en: string;
   foto_url: string;
@@ -63,6 +64,7 @@ export async function getUbicaciones(): Promise<Ubicacion[]> {
     return {
       id: doc.id,
       nombre: (data.nombre as string) || 'Sin Nombre',
+      nombre_en: (data.nombre_en as string) || 'No Name',
       descripcion: (data.descripcion as string) || 'Sin Descripción',
       descripcion_en: (data.descripcion_en as string) || 'No Description',
       foto_url: (data.foto_url as string) || '',

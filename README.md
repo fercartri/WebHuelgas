@@ -22,3 +22,5 @@ La aplicación está construida con el siguiente stack tecnológico:
 - Héctor Infante Henríquez
 - Rodrigo Serna Albarrán
 - Iván Ulloa Gómez
+
+© 2025 Fernando Carmona, Héctor Infante, Rodrigo Serna e Iván Ulloa. Todos los derechos reservados.

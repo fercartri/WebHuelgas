@@ -17,10 +17,15 @@ La aplicación está construida con el siguiente stack tecnológico:
 - Visualización de ubicaciones
 - Gestion (CRUD) de dichas ubicaciones
 
-### Autores
-- Fernando Carmona Palacio
-- Héctor Infante Henríquez
-- Rodrigo Serna Albarrán
-- Iván Ulloa Gómez
+## Autores
+
+Este proyecto ha sido desarrollado por el equipo de estudiantes de la Universidad de Valladolid (UVa):
+
+* **Fernando Carmona Palacio** - [LinkedIn](https://www.linkedin.com/in/fernando-carmona-palacio)
+* **Rodrigo Serna Albarrán** - [LinkedIn](https://www.linkedin.com/in/rodrigo-serna-albarrán-a61363335)
+* **Héctor Infante Enríquez** - [LinkedIn](https://www.linkedin.com/in/héctor-infante-enríquez-492047372)
+* **Iván Ulloa Gómez** - [LinkedIn](https://www.linkedin.com/in/iván-ulloa-gómez-b18408390)
+
+---
 
 © 2025 Fernando Carmona, Héctor Infante, Rodrigo Serna e Iván Ulloa. Todos los derechos reservados.
